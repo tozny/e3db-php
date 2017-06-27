@@ -3,11 +3,13 @@
     "description": "PHP client library for Tozny's End-to-End Encrypted Database.",
     "type": "library",
     "require": {
+        "php": ">=7.0",
         "paragonie/sodium_compat": "^1.0",
         "guzzlehttp/guzzle": "^6.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.2"
+        "phpunit/phpunit": "^6.2",
+        "satooshi/php-coveralls": "^1.0"
     },
     "license": "MIT",
     "authors": [
@@ -16,5 +18,10 @@
             "email": "eric@tozny.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Tozny\\E3DB\\": "php/"
+        }
+    }
 }
