@@ -1,0 +1,20 @@
+{
+    "name": "tozny/e3db",
+    "description": "PHP client library for Tozny's End-to-End Encrypted Database.",
+    "type": "library",
+    "require": {
+        "paragonie/sodium_compat": "^1.0",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Eric Mann",
+            "email": "eric@tozny.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
