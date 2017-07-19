@@ -30,7 +30,90 @@
 
 namespace Tozny\E3DB\Connection;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use Sainsburys\Guzzle\Oauth2\GrantType\ClientCredentials;
+use Sainsburys\Guzzle\Oauth2\GrantType\RefreshToken;
+use Sainsburys\Guzzle\Oauth2\Middleware\OAuthMiddleware;
+use Tozny\E3DB\Config;
+use Sainsburys\Guzzle\Oauth2\GrantType\PasswordCredentials;
+
 class GuzzleConnection extends Connection
 {
+    private $client;
 
+    public function __construct( Config $config )
+    {
+        parent::__construct( $config );
+
+        $auth_client = new Client( [ 'base_uri' => $config->api_url ] );
+        $auth_config = [
+            PasswordCredentials::CONFIG_CLIENT_ID => $config->api_key_id,
+            PasswordCredentials::CONFIG_CLIENT_SECRET => $config->api_secret,
+            PasswordCredentials::CONFIG_TOKEN_URL => '/v1/auth/token',
+            'scope' => null,
+        ];
+        $grant = new ClientCredentials( $auth_client, $auth_config );
+        $refresh = new RefreshToken( $auth_client, $auth_config );
+        $middleware = new OAuthMiddleware( $auth_client, $grant, $refresh );
+
+        $handlerStack = HandlerStack::create();
+        $handlerStack->push( $middleware->onBefore() );
+        $handlerStack->push( $middleware->onFailure( 5 ) );
+
+        $this->client = new Client( [
+            'handler' => $handlerStack,
+            'base_uri' => $config->api_url,
+            'auth' => 'oauth2',
+        ] );
+    }
+
+    function get_access_key( string $writer_id, string $user_id, string $reader_id, string $type )
+    {
+        $cache_key = "{$writer_id}.{$user_id}.{$type}";
+        if ( array_key_exists( $cache_key, $this->ak_cache ) ) {
+            return $this->ak_cache[ $cache_key ];
+        }
+
+        $path = $this->uri( 'v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type );
+        $response = $this->client->request( 'GET', $path );
+        $data = json_decode( $response->getBody(), true );
+
+        if ( null === $data ) {
+            return null;
+        }
+
+        $key = $this->decrypt_eak( $data );
+        $this->ak_cache[ $cache_key ] = $key;
+
+        return $key;
+    }
+
+    function put_access_key( string $writer_id, string $user_id, string $reader_id, string $type, string $ak )
+    {
+        // TODO: Implement put_access_key() method.
+    }
+
+    function find_client( string $email ): Response
+    {
+        $path = $this->uri( 'v1', 'storage', 'clients', 'find' );
+        return $this->client->request( 'POST', $path, [ 'query' => [ 'email' => $email ] ] );
+    }
+
+    function get_client( string $client_id ) : Response
+    {
+        $path = $this->uri( 'v1', 'storage', 'clients', $client_id );
+        return $this->client->request( 'GET', $path );
+    }
+
+    function get( string $path ): Response
+    {
+        return $this->client->request( 'GET', $path );
+    }
+
+    function delete( string $path ): Response
+    {
+        return $this->client->request( 'DELETE', $path );
+    }
 }

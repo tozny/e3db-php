@@ -6,7 +6,8 @@
         "php": ">=7.0",
         "paragonie/sodium_compat": "^1.0",
         "guzzlehttp/guzzle": "^6.3",
-        "monolog/monolog": "^1.23"
+        "monolog/monolog": "^1.23",
+        "sainsburys/guzzle-oauth2-plugin": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.2",
@@ -21,6 +22,7 @@
     ],
     "minimum-stability": "stable",
     "autoload": {
+        "files": ["php/Crypto/functions.php"],
         "psr-4": {
             "Tozny\\E3DB\\": "php/"
         }

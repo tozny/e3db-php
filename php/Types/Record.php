@@ -41,6 +41,25 @@ namespace Tozny\E3DB\Types;
  */
 class Record
 {
+    public static function new( array $raw ): Record
+    {
+        $record = new self();
+
+        $record->meta = new Meta();
+        $record->meta->record_id = $raw['meta']['record_id'];
+        $record->meta->writer_id = $raw['meta']['writer_id'];
+        $record->meta->user_id = $raw['meta']['user_id'];
+        $record->meta->type = $raw['meta']['type'];
+        $record->meta->plain = $raw['meta']['plain'];
+        $record->meta->created = new \DateTime( $raw['meta']['created'] );
+        $record->meta->last_modified = new \DateTime( $raw['meta']['last_modified'] );
+        $record->meta->version = $raw['meta']['version'];
+
+        $record->data = $raw['data'];
+
+        return $record;
+    }
+
     /**
      * @var Meta Meta information about the record.
      */

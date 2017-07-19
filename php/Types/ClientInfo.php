@@ -28,57 +28,28 @@
  * @license    MIT License
  */
 
-namespace Tozny\E3DB;
+namespace Tozny\E3DB\Types;
 
 /**
- * Default API endpoint location.
- */
-const DEFAULT_API_URL = 'https://api.e3db.com/';
-
-/**
- * Configuration and credentials for E3DB.
+ * Information about a specific E3DB client, including the client's
+ * public key to be used for cryptographic operations.
  *
- * @package Tozny\E3DB
+ * @package Tozny\E3DB\Types
  */
-class Config
+class ClientInfo
 {
     /**
-     * @var int The version number of the configuration format (currently 1)
-     */
-    public $version;
-
-    /**
-     * @var string The client's unique client identifier
+     * @var string UUID representing the client.
      */
     public $client_id;
 
     /**
-     * @var string The client's non-secret API key component
-     */
-    public $api_key_id;
-
-    /**
-     * @var string The client's confidential API key component
-     */
-    public $api_secret;
-
-    /**
-     * @var string The client's Base64URL encoded Curve25519 public key
+     * @var PublicKey Curve 25519 public key for the client.
      */
     public $public_key;
 
     /**
-     * @var string The client's Base64URL encoded Curve25519 private key
+     * @var bool Flag whether or not the client has been validated.
      */
-    public $private_key;
-
-    /**
-     * @var string The base URL for the E3DB API service
-     */
-    public $api_url = DEFAULT_API_URL;
-
-    /**
-     * @var bool A flag to enable HTTP logging when true
-     */
-    public $logging = false;
+    public $validated;
 }

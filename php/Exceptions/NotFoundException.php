@@ -28,57 +28,47 @@
  * @license    MIT License
  */
 
-namespace Tozny\E3DB;
+namespace Tozny\E3DB\Exceptions;
+
+use Throwable;
 
 /**
- * Default API endpoint location.
- */
-const DEFAULT_API_URL = 'https://api.e3db.com/';
-
-/**
- * Configuration and credentials for E3DB.
+ * Error thrown when a requested resource does not exist
  *
- * @package Tozny\E3DB
+ * @package Tozny\E3DB\Exceptions
  */
-class Config
+class NotFoundException extends \Exception
 {
     /**
-     * @var int The version number of the configuration format (currently 1)
+     * @var string Name of the resource that was requested
      */
-    public $version;
+    protected $resource;
 
     /**
-     * @var string The client's unique client identifier
+     * Custom constructor requires the message to be non-empty.
+     *
+     * @param string $message
+     * @param string $resource
+     * @param Throwable|null $previous
      */
-    public $client_id;
+    public function __construct( string $message, string $resource = '', Throwable $previous = null )
+    {
+        $this->resource = strtoupper($resource);
+
+        parent::__construct( $message, 404, $previous );
+    }
 
     /**
-     * @var string The client's non-secret API key component
+     * Customize the error output returned for printing to a log.
+     *
+     * @return string
      */
-    public $api_key_id;
+    public function __toString()
+    {
+        if (empty($this->resource)) {
+            return '404 NOT FOUND: ' . $this->message . "\n";
+        }
 
-    /**
-     * @var string The client's confidential API key component
-     */
-    public $api_secret;
-
-    /**
-     * @var string The client's Base64URL encoded Curve25519 public key
-     */
-    public $public_key;
-
-    /**
-     * @var string The client's Base64URL encoded Curve25519 private key
-     */
-    public $private_key;
-
-    /**
-     * @var string The base URL for the E3DB API service
-     */
-    public $api_url = DEFAULT_API_URL;
-
-    /**
-     * @var bool A flag to enable HTTP logging when true
-     */
-    public $logging = false;
+        return "404 {$this->resource} NOT FOUND: {$this->message}\n";
+    }
 }
