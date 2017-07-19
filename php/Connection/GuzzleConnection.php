@@ -38,6 +38,7 @@ use Sainsburys\Guzzle\Oauth2\GrantType\RefreshToken;
 use Sainsburys\Guzzle\Oauth2\Middleware\OAuthMiddleware;
 use Tozny\E3DB\Config;
 use Sainsburys\Guzzle\Oauth2\GrantType\PasswordCredentials;
+use Tozny\E3DB\Types\Record;
 
 class GuzzleConnection extends Connection
 {
@@ -90,9 +91,19 @@ class GuzzleConnection extends Connection
         return $key;
     }
 
-    function put_access_key( string $writer_id, string $user_id, string $reader_id, string $type, string $ak )
+    function put_access_key( string $writer_id, string $user_id, string $reader_id, string $type, string $ak ): void
     {
-        // TODO: Implement put_access_key() method.
+        $cache_key = "{$writer_id}.{$user_id}.{$type}";
+        $this->ak_cache[$cache_key] = $ak;
+
+        // Get the reader's public key
+        $client_info = json_decode( $this->get_client( $reader_id )->getBody(), true);
+        $reader_key = $client_info['public_key']['curve25519'];
+
+        $encoded = $this->encrypt_ak( $ak, $reader_key );
+
+        $path = $this->uri( 'v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type );
+        $this->client->request('PUT', $path, ['json' => ['eak' => $encoded]]);
     }
 
     function find_client( string $email ): Response
@@ -107,9 +118,19 @@ class GuzzleConnection extends Connection
         return $this->client->request( 'GET', $path );
     }
 
+    function post( string $path, Record $record ): Response
+    {
+        return $this->client->request( 'POST', $path, [ 'json' => $record ] );
+    }
+
     function get( string $path ): Response
     {
         return $this->client->request( 'GET', $path );
+    }
+
+    function put( string $path, Record $record ): Response
+    {
+        return $this->client->request( 'PUT', $path, [ 'json' => $record ] );
     }
 
     function delete( string $path ): Response

@@ -31,7 +31,6 @@
 namespace Tozny\E3DB;
 
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Response;
 use function Sodium\crypto_secretbox;
 use function Sodium\crypto_secretbox_open;
 use Tozny\E3DB\Connection\Connection;
@@ -39,8 +38,10 @@ use function Tozny\E3DB\Crypto\base64decode;
 use function Tozny\E3DB\Crypto\base64encode;
 use function Tozny\E3DB\Crypto\random_key;
 use function Tozny\E3DB\Crypto\random_nonce;
+use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\ClientInfo;
+use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
 use Tozny\E3DB\Types\Record;
 
@@ -69,7 +70,8 @@ class Client
      *
      * @return ClientInfo
      *
-     * @throws \Exception If no client is found, or if a client is undiscoverable via email.
+     * @throws NotFoundException If no client is found, or if a client is undiscoverable via email.
+     * @throws \RuntimeException If there is an error deserializing the data from the server
      */
     public function client_info( string $client_id ) : ClientInfo
     {
@@ -117,40 +119,136 @@ class Client
         return $this->client_info($client_id)->public_key;
     }
 
+    /**
+     * Read a raw record from the E3DB system and return it, still encrypted, to the
+     * original requester.
+     *
+     * @param string $record_id
+     *
+     * @return Record
+     *
+     * @throws NotFoundException If no record is found or if the record is unreadable.
+     * @throws \RuntimeException If there is an error deserializing the data from the server.
+     */
     public function read_raw( string $record_id ): Record
     {
         $path = $this->conn->uri( 'v1', 'storage', 'records', $record_id );
-        /** @var Response $resp */
-        $resp = $this->conn->get( $path );
+
+        try {
+            $resp = $this->conn->get( $path );
+        } catch ( RequestException $re ) {
+            throw new NotFoundException( 'Count not retrieve data from the server.', 'record' );
+        }
 
         $data = json_decode( $resp->getBody(), true );
 
-        if (null === $data) {
-            throw new \Exception('Unable to read record!' );
+        if ( null === $data ) {
+            throw new \RuntimeException( 'Error while reading record data!' );
         }
 
-        return Record::new($data);
+        return Record::new( $data );
     }
 
+    /**
+     * Reads a record from the E3DB system and decrypts it automatically.
+     *
+     * @param string $record_id
+     *
+     * @return Record
+     */
     public function read( string $record_id ): Record
     {
         return $this->decrypt_record( $this->read_raw( $record_id ) );
     }
 
-    public function write( string $type, array $data, array $plain )
+    /**
+     * Create a new record entry with E3DB.
+     *
+     * @param string     $type    The content type with which to associate the record.
+     * @param array      $data    A hashmap of the data to encrypt and store
+     * @param array|null [$plain] Optional hashmap of data to store with the record's meta in plaintext.
+     *
+     * @return Record
+     *
+     * @throws \RuntimeException If there is an error while persisting the data with E3DB.
+     */
+    public function write( string $type, array $data, array $plain = null ): Record
     {
+        $path = $this->conn->uri('v1', 'storage', 'records');
+        $writer = $this->config->client_id;
 
+        // Build up the record
+        $meta = new Meta();
+        $meta->writer_id = $writer;
+        $meta->user_id = $writer;
+        $meta->type = $type;
+        $meta->plain = $plain;
+
+        $record = new Record();
+        $record->meta = $meta;
+        $record->data = $data;
+
+        try {
+            $resp = $this->conn->post($path, $this->encrypt_record($record));
+        } catch ( RequestException $re ) {
+            throw new \RuntimeException( 'Error while writing record data!' );
+        }
+
+        $returned = json_decode( $resp->getBody(), true );
+
+        if ( null === $returned ) {
+            throw new \RuntimeException( 'Error while writing record data!' );
+        }
+
+        return $this->decrypt_record( Record::new( $returned ) );
     }
 
-    public function update( Record $record )
+    /**
+     * Update a record, with optimistic concurrent locking, that already exists in the E3DB system.
+     *
+     * @param Record $record Record to be updated.
+     *
+     * @throws ConflictException If the version ID in the record does not match the latest version stored on the server.
+     */
+    public function update( Record $record ): void
     {
+        $record_id = $record->meta->record_id;
+        $version = $record->meta->version;
 
+        $path = $this->conn->uri('v1', 'storage', 'records', 'safe', $record_id, $version );
+        try {
+            $this->conn->put($path, $this->encrypt_record($record));
+        } catch (RequestException $re) {
+            if ($re->getResponse()->getStatusCode() === 409) {
+                throw new ConflictException("Conflict updating record ID {$record_id}", 'record' );
+            }
+
+            throw $re;
+        }
     }
 
-    public function delete( string $record_id )
+    /**
+     * Deletes a record from the E3DB system
+     *
+     * @param string $record_id
+     */
+    public function delete( string $record_id ): void
     {
         $path = $this->conn->uri( 'v1', 'storage', 'records', $record_id );
-        $this->conn->delete( $path );
+        try {
+            $this->conn->delete( $path );
+        } catch ( RequestException $re ) {
+            switch ( $re->getResponse()->getStatusCode() ) {
+                case 404:
+                case 410:
+                    // If the record never existed, or is already missing, return
+                    return;
+                default:
+                    // Something else went wrong!
+                    throw new \RuntimeException( 'Error while deleting record data!' );
+                    break;
+            }
+        }
     }
 
     /**
@@ -160,7 +258,7 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record( Record $record )
+    private function decrypt_record( Record $record ): Record
     {
         $ak = $this->conn->get_access_key(
             $record->meta->writer_id,
@@ -181,7 +279,7 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record_with_key( Record $encrypted, string $access_key )
+    private function decrypt_record_with_key( Record $encrypted, string $access_key ): Record
     {
         $decrypted = new Record();
         $decrypted->meta = $encrypted->meta;
@@ -211,36 +309,53 @@ class Client
      *
      * @return Record
      */
-    private function encrypt_record( Record $record )
+    private function encrypt_record( Record $record ): Record
     {
         $encrypted = new Record();
         $encrypted->meta = $record->meta;
-        $encrypted->data = [];
+        $data = [];
 
-        $ak = $this->conn->get_access_key(
-            $record->meta->writer_id,
-            $record->meta->user_id,
-            $this->config->client_id,
-            $record->meta->type
-        );
+        try {
+            $ak = $this->conn->get_access_key(
+                $record->meta->writer_id,
+                $record->meta->user_id,
+                $this->config->client_id,
+                $record->meta->type
+            );
+        } catch (RequestException $re) {
+            switch($re->getResponse()->getStatusCode()) {
+                case 404:
+                    // Create a random AK
+                    $ak = random_key();
 
-        if ( null === $ak ) {
-            $ak = random_key();
+                    // Store the AK with the system
+                    $this->conn->put_access_key(
+                        $record->meta->writer_id,
+                        $record->meta->user_id,
+                        $this->config->client_id,
+                        $record->meta->type,
+                        $ak
+                    );
+                    break;
+                default:
+                    throw new \RuntimeException('Error while retrieving access keys!');
+            }
         }
 
-        array_walk( $record->data, function ( $plain, $key ) use ( $ak, &$encrypted ) {
+        array_walk( $record->data, function ( $plain, $key ) use ( $ak, &$data ) {
             $dk = random_key();
             $efN = random_nonce();
             $ef = crypto_secretbox( $plain, $efN, $dk );
             $edkN = random_nonce();
             $edk = crypto_secretbox( $dk, $edkN, $ak );
 
-            $encrypted[ $key ] = sprintf( '%s.%s.%s.%s',
+            $data[ $key ] = sprintf( '%s.%s.%s.%s',
                 base64encode( $edk ), base64encode( $edkN ),
                 base64encode( $ef ), base64encode( $efN )
             );
         } );
 
+        $encrypted->data = $data;
         return $encrypted;
     }
 }

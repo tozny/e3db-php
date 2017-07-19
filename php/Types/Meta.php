@@ -35,12 +35,12 @@ namespace Tozny\E3DB\Types;
  *
  * @package Tozny\E3DB\Types
  */
-class Meta
+class Meta implements \JsonSerializable
 {
     /**
      * @var string Unique ID of the record, or `null` if not yet written
      */
-    public $record_id;
+    public $record_id = null;
 
     /**
      * @var string Unique ID of the client who wrote the record
@@ -60,20 +60,53 @@ class Meta
     /**
      * @var array Map of String->String values describing the record's plaintext meta
      */
-    public $plain;
+    public $plain = null;
 
     /**
      * @var \DateTime When this record was created, or `null` if unavailable.
      */
-    public $created;
+    public $created = null;
 
     /**
      * @var \DateTime When this record last changed, or `null` if unavailable.
      */
-    public $last_modified;
+    public $last_modified = null;
 
     /**
      * @var string Opaque version identifier created by the server on changes.
      */
-    public $version;
+    public $version = null;
+
+    /**
+     * Serialize the object to JSON
+     */
+    function jsonSerialize(): array
+    {
+        return [
+            'record_id'     => $this->record_id,
+            'writer_id'     => $this->writer_id,
+            'user_id'       => $this->user_id,
+            'type'          => $this->type,
+            'plain'         => $this->plain,
+            'created'       => self::jsonSerializeDate( $this->created ),
+            'last_modified' => self::jsonSerializeDate( $this->last_modified ),
+            'version'       => $this->version,
+        ];
+    }
+
+    /**
+     * Helper function to coalesce null DateTime values for JSON serialization.
+     *
+     * @param \DateTime|null $date
+     *
+     * @return mixed
+     */
+    protected static function jsonSerializeDate( $date )
+    {
+        if ( $date !== null ) {
+            return $date->format( \DateTime::ISO8601 );
+        }
+
+        return null;
+    }
 }

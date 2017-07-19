@@ -31,8 +31,11 @@
 namespace Tozny\E3DB\Connection;
 
 use GuzzleHttp\Psr7\Response;
+use const Sodium\CRYPTO_BOX_NONCEBYTES;
 use Tozny\E3DB\Config;
 use function Tozny\E3DB\Crypto\base64decode;
+use function Tozny\E3DB\Crypto\base64encode;
+use Tozny\E3DB\Types\Record;
 
 abstract class Connection
 {
@@ -59,9 +62,13 @@ abstract class Connection
 
     abstract function get_client( string $client_id ): Response;
 
-    abstract function get(string $path);
+    abstract function post( string $path, Record $record ): Response;
 
-    abstract function delete(string $path);
+    abstract function get( string $path ): Response;
+
+    abstract function put( string $path, Record $record ): Response;
+
+    abstract function delete( string $path ): Response;
 
     /**
      * Build up a URL based on path parameters
@@ -75,7 +82,15 @@ abstract class Connection
         return $this->config->api_url . '/' . implode('/', $parts);
     }
 
-    protected function decrypt_eak( $json )
+    /**
+     * Decrypt the access key provided for a specific reader so it can be used
+     * to further decrypt a protected record.
+     *
+     * @param array $json
+     *
+     * @return string Raw binary string of the access key
+     */
+    protected function decrypt_eak( array $json ): string
     {
         $key = $json[ 'authorizer_public_key' ][ 'curve25519' ];
         $public_key = base64decode( $key );
@@ -89,5 +104,27 @@ abstract class Connection
         $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey( $private_key, $public_key );
 
         return sodium_crypto_box_open( $ciphertext, $nonce, $keypair );
+    }
+
+    /**
+     * Encrypt an access key for a given reader.
+     *
+     * @param string $ak         Raw binary string of the access key
+     * @param string $reader_key Base64url-encoded public key of the reader
+     *
+     * @return string Encryted and encoded access key.
+     */
+    protected function encrypt_ak( string $ak, string $reader_key ): string
+    {
+        $public_key = base64decode( $reader_key );
+        $private_key = base64decode( $this->config->private_key );
+
+        // Build keypair
+        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey( $private_key, $public_key );
+
+        $nonce = \random_bytes(CRYPTO_BOX_NONCEBYTES);
+        $eak = sodium_crypto_box($ak, $nonce, $keypair);
+
+        return sprintf('%s.%s', base64encode($eak), base64encode($nonce));
     }
 }
