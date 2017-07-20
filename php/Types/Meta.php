@@ -115,7 +115,7 @@ class Meta implements \JsonSerializable, JsonUnserializable
     /**
      * Serialize the object to JSON
      */
-    function jsonSerialize(): array
+    public function jsonSerialize(): array
     {
         return [
             'record_id'     => $this->_record_id,
@@ -139,7 +139,7 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @throws \Exception
      */
-    static function decode( string $json ): Meta
+    public static function decode( string $json ): Meta
     {
         $data = \json_decode( $json, true );
 
@@ -158,7 +158,7 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @return Meta
      */
-    static function decodeArray( array $parsed ): Meta
+    public static function decodeArray( array $parsed ): Meta
     {
         $meta = new Meta(
             $parsed['writer_id'],

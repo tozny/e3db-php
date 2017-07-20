@@ -34,6 +34,8 @@ namespace Tozny\E3DB\Types;
  * Describe a Curve25519 public key for use in Sodium-powered cryptographic
  * operations.
  *
+ * @property-read string $curve25519 Public component of the Curve25519 key.
+ *
  * @package Tozny\E3DB\Types
  */
 class PublicKey
@@ -41,5 +43,62 @@ class PublicKey
     /**
      * @var string Public component of the Curve25519 key.
      */
-    public $curve25519;
+    protected $_curve25519;
+
+    public function __construct( string $curve25519 )
+    {
+        $this->_curve25519 = $curve25519;
+    }
+
+    /**
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
+     */
+    public function __get( string $name )
+    {
+        $key = "_{$name}";
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        trigger_error( "Undefined property: PublicKey::{$name}", E_USER_NOTICE );
+        return null;
+    }
+
+    /**
+     * Specify how data should be unserialized from JSON and marshaled into
+     * an object representation.
+     *
+     * @param string $json Raw JSON string to be decoded
+     *
+     * @return PublicKey
+     *
+     * @throws \Exception
+     */
+    public static function decode( string $json ): PublicKey
+    {
+        $data = \json_decode( $json, true );
+
+        if ( null === $data ) {
+            throw new \Exception( 'Error decoding PublicKey JSON' );
+        }
+
+        return self::decodeArray( $data );
+    }
+
+    /**
+     * Specify how an already unserialized JSON array should be marshaled into
+     * an object representation.
+     *
+     * @param array $parsed
+     *
+     * @return PublicKey
+     */
+    public static function decodeArray( array $parsed ): PublicKey
+    {
+        return new PublicKey( $parsed[ 'curve25519' ] );
+    }
 }

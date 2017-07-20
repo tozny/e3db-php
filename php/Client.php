@@ -85,19 +85,7 @@ class Client
             throw new NotFoundException('Count not retrieve info from the server.', 'client');
         }
 
-        $data = json_decode($info->getBody(), true);
-
-        if (null === $data) {
-            throw new \RuntimeException('Error while decoding client info.');
-        }
-
-        $info = new ClientInfo();
-        $info->client_id = $data['client_id'];
-        $info->public_key = new PublicKey();
-        $info->public_key->curve25519 = $data['public_key']['curve25519'];
-        $info->validated = $data['validated'];
-
-        return $info;
+        return ClientInfo::decode( $info->getBody() );
     }
 
     /**
@@ -109,14 +97,11 @@ class Client
      */
     public function client_key( string $client_id ) : PublicKey
     {
-        if ($this->config->client_id === $client_id) {
-            $key = new PublicKey();
-            $key->curve25519 = $this->config->public_key;
-
-            return $key;
+        if ( $this->config->client_id === $client_id ) {
+            return new PublicKey( $this->config->public_key );
         }
 
-        return $this->client_info($client_id)->public_key;
+        return $this->client_info( $client_id )->public_key;
     }
 
     /**
