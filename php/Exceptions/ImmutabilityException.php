@@ -35,44 +35,24 @@ namespace Tozny\E3DB\Exceptions;
 use Throwable;
 
 /**
- * Error thrown when an update request conflicts with an existing object.
+ * Error thrown when an immutable field is updated.
  *
  * @package Tozny\E3DB\Exceptions
  *
  * @codeCoverageIgnore
  */
-class ConflictException extends \Exception
+class ImmutabilityException extends \Exception
 {
-    /**
-     * @var string Name of the resource that was requested
-     */
-    protected $resource;
-
     /**
      * Custom constructor requires the message to be non-empty.
      *
-     * @param string $message
-     * @param string $resource
+     * @param string         $message
+     * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $message, string $resource = '', Throwable $previous = null)
+    public function __construct(string $message, int $code = 0, Throwable $previous = null)
     {
-        $this->resource = strtoupper($resource);
 
-        parent::__construct($message, 409, $previous);
-    }
-
-    /**
-     * Customize the error output returned for printing to a log.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        if (empty($this->resource)) {
-            return '409 CONFLICT: ' . $this->message . "\n";
-        }
-
-        return "409 {$this->resource} CONFLICT: {$this->message}\n";
+        parent::__construct($message, $code, $previous);
     }
 }

@@ -79,7 +79,7 @@ abstract class Connection
      *
      * @return string
      */
-    function uri(string ...$parts): string
+    public function uri(string ...$parts): string
     {
         return $this->config->api_url . '/' . implode('/', $parts);
     }

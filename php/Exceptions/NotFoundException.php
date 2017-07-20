@@ -38,6 +38,8 @@ use Throwable;
  * Error thrown when a requested resource does not exist
  *
  * @package Tozny\E3DB\Exceptions
+ *
+ * @codeCoverageIgnore
  */
 class NotFoundException extends \Exception
 {

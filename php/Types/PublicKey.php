@@ -40,7 +40,7 @@ namespace Tozny\E3DB\Types;
  *
  * @package Tozny\E3DB\Types
  */
-class PublicKey
+class PublicKey implements \JsonSerializable, JsonUnserializable
 {
     /**
      * @var string Public component of the Curve25519 key.
@@ -68,6 +68,16 @@ class PublicKey
 
         trigger_error("Undefined property: PublicKey::{$name}", E_USER_NOTICE);
         return null;
+    }
+
+    /**
+     * Serialize the object to JSON
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'curve25519'  => $this->_curve25519,
+        ];
     }
 
     /**

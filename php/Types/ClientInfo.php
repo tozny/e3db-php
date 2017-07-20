@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
 /**
  * Information about a specific E3DB client, including the client's
  * public key to be used for cryptographic operations.
@@ -42,7 +44,7 @@ namespace Tozny\E3DB\Types;
  *
  * @package Tozny\E3DB\Types
  */
-class ClientInfo implements JsonUnserializable
+class ClientInfo implements \JsonSerializable, JsonUnserializable
 {
     /**
      * @var string UUID representing the client.
@@ -82,6 +84,33 @@ class ClientInfo implements JsonUnserializable
 
         trigger_error("Undefined property: ClientInfo::{$name}", E_USER_NOTICE);
         return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['client_id', 'public_key', 'validated'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
+    }
+
+    /**
+     * Serialize the object to JSON
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'client_id'  => $this->_client_id,
+            'public_key' => $this->_public_key,
+            'validated'  => $this->_validated,
+        ];
     }
 
     /**
