@@ -54,7 +54,14 @@ use Tozny\E3DB\Types\Record;
  */
 class Client
 {
+    /**
+     * @var Config Connection/Client configuration
+     */
     private $config;
+
+    /**
+     * @var Connection Interface through which API calls will be made.
+     */
     private $conn;
 
     public function __construct(Config $config, Connection $conn)

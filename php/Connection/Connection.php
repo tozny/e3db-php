@@ -56,20 +56,83 @@ abstract class Connection
         $this->config = $config;
     }
 
+    /**
+     * Retrieve an access key from the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     *
+     * @return string|null Decrypted access key on success, NULL if no key exists.
+     */
     abstract function get_access_key(string $writer_id, string $user_id, string $reader_id, string $type);
 
-    abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak);
+    /**
+     * Create an access key on the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     * @param string $ak        Unencrypted access key
+     */
+    abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void;
 
+    /**
+     * Attempt to find a client based on their email address.
+     *
+     * @param string $email
+     *
+     * @return Response PSR7 response object
+     */
     abstract function find_client(string $email): Response;
 
+    /**
+     * Get a client's information based on their ID.
+     *
+     * @param string $client_id
+     *
+     * @return Response PSR7 response object
+     */
     abstract function get_client(string $client_id): Response;
 
+    /**
+     * Create a new object with E3DB
+     *
+     * @param string $path   API endpoint to request
+     * @param Record $record Record to be created
+     *
+     * @return Response PSR7 response object
+     */
     abstract function post(string $path, Record $record): Response;
 
+    /**
+     * Retrieve an object from E3DB
+     *
+     * @param string $path API endpoint to request
+     *
+     * @return Response PSR7 response object
+     */
     abstract function get(string $path): Response;
 
+    /**
+     * Update an object with E3DB
+     *
+     * @param string $path   API endpoint to request
+     * @param Record $record Object to be updated
+     *
+     * @return Response PSR7 response object
+     */
     abstract function put(string $path, Record $record): Response;
 
+    /**
+     * Delete an object from E3DB
+     *
+     * @param string $path API endpoint to request
+     *
+     * @return Response PSR7 response object
+     */
     abstract function delete(string $path): Response;
 
     /**

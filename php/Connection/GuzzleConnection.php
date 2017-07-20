@@ -44,6 +44,9 @@ use Tozny\E3DB\Types\Record;
 
 class GuzzleConnection extends Connection
 {
+    /**
+     * @var Client GuzzleHTTP client.
+     */
     private $client;
 
     public function __construct(Config $config)
@@ -72,6 +75,16 @@ class GuzzleConnection extends Connection
         ]);
     }
 
+    /**
+     * Retrieve an access key from the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     *
+     * @return string|null Decrypted access key on success, NULL if no key exists.
+     */
     function get_access_key(string $writer_id, string $user_id, string $reader_id, string $type)
     {
         $cache_key = "{$writer_id}.{$user_id}.{$type}";
@@ -93,6 +106,15 @@ class GuzzleConnection extends Connection
         return $key;
     }
 
+    /**
+     * Create an access key on the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     * @param string $ak        Unencrypted access key
+     */
     function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void
     {
         $cache_key = "{$writer_id}.{$user_id}.{$type}";
@@ -108,33 +130,77 @@ class GuzzleConnection extends Connection
         $this->client->request('PUT', $path, ['json' => ['eak' => $encoded]]);
     }
 
+    /**
+     * Attempt to find a client based on their email address.
+     *
+     * @param string $email
+     *
+     * @return Response PSR7 response object
+     */
     function find_client(string $email): Response
     {
         $path = $this->uri('v1', 'storage', 'clients', 'find');
         return $this->client->request('POST', $path, ['query' => ['email' => $email]]);
     }
 
+    /**
+     * Get a client's information based on their ID.
+     *
+     * @param string $client_id
+     *
+     * @return Response PSR7 response object
+     */
     function get_client(string $client_id): Response
     {
         $path = $this->uri('v1', 'storage', 'clients', $client_id);
         return $this->client->request('GET', $path);
     }
 
+    /**
+     * Create a new object with E3DB
+     *
+     * @param string $path   API endpoint to request
+     * @param Record $record Record to be created
+     *
+     * @return Response PSR7 response object
+     */
     function post(string $path, Record $record): Response
     {
         return $this->client->request('POST', $path, ['json' => $record]);
     }
 
+    /**
+     * Retrieve an object from E3DB
+     *
+     * @param string $path API endpoint to request
+     *
+     * @return Response PSR7 response object
+     */
     function get(string $path): Response
     {
         return $this->client->request('GET', $path);
     }
 
+    /**
+     * Update an object with E3DB
+     *
+     * @param string $path   API endpoint to request
+     * @param Record $record Object to be updated
+     *
+     * @return Response PSR7 response object
+     */
     function put(string $path, Record $record): Response
     {
         return $this->client->request('PUT', $path, ['json' => $record]);
     }
 
+    /**
+     * Delete an object from E3DB
+     *
+     * @param string $path API endpoint to request
+     *
+     * @return Response PSR7 response object
+     */
     function delete(string $path): Response
     {
         return $this->client->request('DELETE', $path);

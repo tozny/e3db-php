@@ -88,7 +88,7 @@ class ConcreteConnection extends Connection
         // TODO: Implement get_access_key() method.
     }
 
-    function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak)
+    function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void
     {
         // TODO: Implement put_access_key() method.
     }
