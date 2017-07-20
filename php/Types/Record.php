@@ -37,36 +37,88 @@ namespace Tozny\E3DB\Types;
  * to the server for storage, and decrypted in the client after
  * they are read.
  *
+ * @property-read Meta $meta Meta information about the record.
+ *
  * @package Tozny\E3DB\Types
  */
-class Record
+class Record implements \JsonSerializable, JsonUnserializable
 {
-    public static function new( array $raw ): Record
-    {
-        $record = new self();
-
-        $record->meta = new Meta();
-        $record->meta->record_id = $raw['meta']['record_id'];
-        $record->meta->writer_id = $raw['meta']['writer_id'];
-        $record->meta->user_id = $raw['meta']['user_id'];
-        $record->meta->type = $raw['meta']['type'];
-        $record->meta->plain = $raw['meta']['plain'];
-        $record->meta->created = new \DateTime( $raw['meta']['created'] );
-        $record->meta->last_modified = new \DateTime( $raw['meta']['last_modified'] );
-        $record->meta->version = $raw['meta']['version'];
-
-        $record->data = $raw['data'];
-
-        return $record;
-    }
-
     /**
      * @var Meta Meta information about the record.
      */
-    public $meta;
+    protected $_meta;
 
     /**
      * @var array The record's application-specific data.
      */
     public $data;
+
+    public function __construct( Meta $meta, array $data )
+    {
+        $this->_meta = $meta;
+        $this->data = $data;
+    }
+
+    /**
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
+     */
+    public function __get( string $name )
+    {
+        $key = "_{$name}";
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        trigger_error( "Undefined property: Record::{$name}", E_USER_NOTICE );
+        return null;
+    }
+
+    /**
+     * Serialize the object to JSON
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'meta' => $this->_meta,
+            'data' => $this->data
+        ];
+    }
+
+    /**
+     * Specify how data should be unserialized from JSON and marshaled into
+     * an object representation.
+     *
+     * @param string $json Raw JSON string to be decoded
+     *
+     * @return Record
+     *
+     * @throws \Exception
+     */
+    public static function decode( string $json ): Record
+    {
+        $data = \json_decode( $json, true );
+
+        if ( null === $data ) {
+            throw new \Exception( 'Error decoding Record JSON' );
+        }
+
+        return self::decodeArray( $data );
+    }
+
+    /**
+     * Specify how an already unserialized JSON array should be marshaled into
+     * an object representation.
+     *
+     * @param array $parsed
+     *
+     * @return Record
+     */
+    public static function decodeArray( array $parsed ): Record
+    {
+        return new Record( Meta::decodeArray( $parsed[ 'meta' ] ), $parsed[ 'data' ] );
+    }
 }

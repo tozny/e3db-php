@@ -33,14 +33,34 @@ namespace Tozny\E3DB\Types;
 /**
  * Describe the meta information attributed to a specific encrypted record.
  *
+ * @property-read string    $record_id     Unique ID of the record, or `null` if not yet written
+ * @property-read \DateTime $created       When this record was created, or `null` if unavailable.
+ * @property-read \DateTime $last_modified When this record last changed, or `null` if unavailable.
+ * @property-read string    $version       Opaque version identifier created by the server on changes.
+ *
  * @package Tozny\E3DB\Types
  */
-class Meta implements \JsonSerializable
+class Meta implements \JsonSerializable, JsonUnserializable
 {
     /**
      * @var string Unique ID of the record, or `null` if not yet written
      */
-    public $record_id = null;
+    protected $_record_id = null;
+
+    /**
+     * @var \DateTime When this record was created, or `null` if unavailable.
+     */
+    protected $_created = null;
+
+    /**
+     * @var \DateTime When this record last changed, or `null` if unavailable.
+     */
+    protected $_last_modified = null;
+
+    /**
+     * @var string Opaque version identifier created by the server on changes.
+     */
+    protected $_version = null;
 
     /**
      * @var string Unique ID of the client who wrote the record
@@ -62,20 +82,35 @@ class Meta implements \JsonSerializable
      */
     public $plain = null;
 
-    /**
-     * @var \DateTime When this record was created, or `null` if unavailable.
-     */
-    public $created = null;
+    public function __construct( string $writer_id, string $user_id, string $type, array $plain = null )
+    {
+        $this->_record_id = null;
+        $this->writer_id = $writer_id;
+        $this->user_id = $user_id;
+        $this->type = $type;
+        $this->plain = $plain;
+        $this->_created = null;
+        $this->_last_modified = null;
+        $this->_version = null;
+    }
 
     /**
-     * @var \DateTime When this record last changed, or `null` if unavailable.
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
      */
-    public $last_modified = null;
+    public function __get( string $name )
+    {
+        $key = "_{$name}";
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
 
-    /**
-     * @var string Opaque version identifier created by the server on changes.
-     */
-    public $version = null;
+        trigger_error( "Undefined property: Meta::{$name}", E_USER_NOTICE );
+        return null;
+    }
 
     /**
      * Serialize the object to JSON
@@ -83,15 +118,60 @@ class Meta implements \JsonSerializable
     function jsonSerialize(): array
     {
         return [
-            'record_id'     => $this->record_id,
+            'record_id'     => $this->_record_id,
             'writer_id'     => $this->writer_id,
             'user_id'       => $this->user_id,
             'type'          => $this->type,
             'plain'         => $this->plain,
-            'created'       => self::jsonSerializeDate( $this->created ),
-            'last_modified' => self::jsonSerializeDate( $this->last_modified ),
-            'version'       => $this->version,
+            'created'       => self::jsonSerializeDate( $this->_created ),
+            'last_modified' => self::jsonSerializeDate( $this->_last_modified ),
+            'version'       => $this->_version,
         ];
+    }
+
+    /**
+     * Specify how data should be unserialized from JSON and marshaled into
+     * an object representation.
+     *
+     * @param string $json Raw JSON string to be decoded
+     *
+     * @return Meta
+     *
+     * @throws \Exception
+     */
+    static function decode( string $json ): Meta
+    {
+        $data = \json_decode( $json, true );
+
+        if ( null === $data ) {
+            throw new \Exception( 'Error decoding Meta JSON' );
+        }
+
+        return self::decodeArray( $data );
+    }
+
+    /**
+     * Specify how an already unserialized JSON array should be marshaled into
+     * an object representation.
+     *
+     * @param array $parsed
+     *
+     * @return Meta
+     */
+    static function decodeArray( array $parsed ): Meta
+    {
+        $meta = new Meta(
+            $parsed['writer_id'],
+            $parsed['user_id'],
+            $parsed['type'],
+            $parsed['plain']
+        );
+        $meta->_record_id = $parsed['record_id'];
+        $meta->_created = new \DateTime( $parsed['created'] );
+        $meta->_last_modified = new \DateTime( $parsed['last_modified'] );
+        $meta->_version = $parsed['version'];
+
+        return $meta;
     }
 
     /**

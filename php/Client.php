@@ -140,13 +140,7 @@ class Client
             throw new NotFoundException( 'Count not retrieve data from the server.', 'record' );
         }
 
-        $data = json_decode( $resp->getBody(), true );
-
-        if ( null === $data ) {
-            throw new \RuntimeException( 'Error while reading record data!' );
-        }
-
-        return Record::new( $data );
+        return Record::decode( $resp->getBody() );
     }
 
     /**
@@ -178,15 +172,9 @@ class Client
         $writer = $this->config->client_id;
 
         // Build up the record
-        $meta = new Meta();
-        $meta->writer_id = $writer;
-        $meta->user_id = $writer;
-        $meta->type = $type;
-        $meta->plain = $plain;
+        $meta = new Meta($writer, $writer, $type, $plain);
 
-        $record = new Record();
-        $record->meta = $meta;
-        $record->data = $data;
+        $record = new Record($meta, $data);
 
         try {
             $resp = $this->conn->post($path, $this->encrypt_record($record));
@@ -194,13 +182,7 @@ class Client
             throw new \RuntimeException( 'Error while writing record data!' );
         }
 
-        $returned = json_decode( $resp->getBody(), true );
-
-        if ( null === $returned ) {
-            throw new \RuntimeException( 'Error while writing record data!' );
-        }
-
-        return $this->decrypt_record( Record::new( $returned ) );
+        return $this->decrypt_record( Record::decode( $resp->getBody() ) );
     }
 
     /**
@@ -281,8 +263,6 @@ class Client
      */
     private function decrypt_record_with_key( Record $encrypted, string $access_key ): Record
     {
-        $decrypted = new Record();
-        $decrypted->meta = $encrypted->meta;
         $data = [];
 
         array_walk( $encrypted->data, function ( $cipher, $key ) use ( $access_key, &$data ) {
@@ -297,8 +277,7 @@ class Client
             $data[ $key ] = crypto_secretbox_open( $ef, $efN, $dk );
         } );
 
-        $decrypted->data = $data;
-        return $decrypted;
+        return new Record( $encrypted->meta, $data );
     }
 
     /**
@@ -311,8 +290,6 @@ class Client
      */
     private function encrypt_record( Record $record ): Record
     {
-        $encrypted = new Record();
-        $encrypted->meta = $record->meta;
         $data = [];
 
         try {
@@ -355,7 +332,6 @@ class Client
             );
         } );
 
-        $encrypted->data = $data;
-        return $encrypted;
+        return new Record( $record->meta, $data );
     }
 }
