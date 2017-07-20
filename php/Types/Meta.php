@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
 /**
  * Describe the meta information attributed to a specific encrypted record.
  *
@@ -112,6 +114,21 @@ class Meta implements \JsonSerializable, JsonUnserializable
 
         trigger_error("Undefined property: Meta::{$name}", E_USER_NOTICE);
         return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['record_id', 'created', 'last_modified', 'version'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
     }
 
     /**

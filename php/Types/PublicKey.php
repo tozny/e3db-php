@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
 /**
  * Describe a Curve25519 public key for use in Sodium-powered cryptographic
  * operations.
@@ -68,6 +70,21 @@ class PublicKey implements \JsonSerializable, JsonUnserializable
 
         trigger_error("Undefined property: PublicKey::{$name}", E_USER_NOTICE);
         return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['curve25519'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
     }
 
     /**

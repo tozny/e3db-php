@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
 /**
  * A E3DB record containing data and metadata. Records are
  * a key/value mapping containing data serialized
@@ -77,6 +79,21 @@ class Record implements \JsonSerializable, JsonUnserializable
 
         trigger_error("Undefined property: Record::{$name}", E_USER_NOTICE);
         return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['meta'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
     }
 
     /**
