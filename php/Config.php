@@ -78,9 +78,4 @@ class Config
      * @var string The base URL for the E3DB API service
      */
     public $api_url = DEFAULT_API_URL;
-
-    /**
-     * @var bool A flag to enable HTTP logging when true
-     */
-    public $logging = false;
 }
