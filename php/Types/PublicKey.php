@@ -45,7 +45,7 @@ class PublicKey
      */
     protected $_curve25519;
 
-    public function __construct( string $curve25519 )
+    public function __construct(string $curve25519)
     {
         $this->_curve25519 = $curve25519;
     }
@@ -57,14 +57,14 @@ class PublicKey
      *
      * @return mixed
      */
-    public function __get( string $name )
+    public function __get(string $name)
     {
         $key = "_{$name}";
         if (property_exists($this, $key)) {
             return $this->$key;
         }
 
-        trigger_error( "Undefined property: PublicKey::{$name}", E_USER_NOTICE );
+        trigger_error("Undefined property: PublicKey::{$name}", E_USER_NOTICE);
         return null;
     }
 
@@ -78,15 +78,15 @@ class PublicKey
      *
      * @throws \Exception
      */
-    public static function decode( string $json ): PublicKey
+    public static function decode(string $json): PublicKey
     {
-        $data = \json_decode( $json, true );
+        $data = \json_decode($json, true);
 
-        if ( null === $data ) {
-            throw new \Exception( 'Error decoding PublicKey JSON' );
+        if (null === $data) {
+            throw new \Exception('Error decoding PublicKey JSON');
         }
 
-        return self::decodeArray( $data );
+        return self::decodeArray($data);
     }
 
     /**
@@ -97,8 +97,8 @@ class PublicKey
      *
      * @return PublicKey
      */
-    public static function decodeArray( array $parsed ): PublicKey
+    public static function decodeArray(array $parsed): PublicKey
     {
-        return new PublicKey( $parsed[ 'curve25519' ] );
+        return new PublicKey($parsed[ 'curve25519' ]);
     }
 }

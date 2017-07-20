@@ -34,9 +34,9 @@ namespace Tozny\E3DB\Types;
  * Information about a specific E3DB client, including the client's
  * public key to be used for cryptographic operations.
  *
- * @property-read string    $client_id  UUID representing the client.
+ * @property-read string $client_id  UUID representing the client.
  * @property-read PublicKey $public_key Curve 25519 public key for the client.
- * @property-read bool      $validated  Flag whether or not the client has been validated.
+ * @property-read bool $validated  Flag whether or not the client has been validated.
  *
  * @package Tozny\E3DB\Types
  */
@@ -57,11 +57,11 @@ class ClientInfo implements JsonUnserializable
      */
     protected $_validated;
 
-    public function __construct( string $client_id, PublicKey $public_key, bool $validated )
+    public function __construct(string $client_id, PublicKey $public_key, bool $validated)
     {
-        $this->_client_id = $client_id;
+        $this->_client_id  = $client_id;
         $this->_public_key = $public_key;
-        $this->_validated = $validated;
+        $this->_validated  = $validated;
     }
 
     /**
@@ -71,14 +71,14 @@ class ClientInfo implements JsonUnserializable
      *
      * @return mixed
      */
-    public function __get( string $name )
+    public function __get(string $name)
     {
         $key = "_{$name}";
         if (property_exists($this, $key)) {
             return $this->$key;
         }
 
-        trigger_error( "Undefined property: ClientInfo::{$name}", E_USER_NOTICE );
+        trigger_error("Undefined property: ClientInfo::{$name}", E_USER_NOTICE);
         return null;
     }
 
@@ -92,15 +92,15 @@ class ClientInfo implements JsonUnserializable
      *
      * @throws \Exception
      */
-    public static function decode( string $json ): ClientInfo
+    public static function decode(string $json): ClientInfo
     {
-        $data = \json_decode( $json, true );
+        $data = \json_decode($json, true);
 
-        if ( null === $data ) {
-            throw new \Exception( 'Error decoding ClientInfo JSON' );
+        if (null === $data) {
+            throw new \Exception('Error decoding ClientInfo JSON');
         }
 
-        return self::decodeArray( $data );
+        return self::decodeArray($data);
     }
 
     /**
@@ -111,11 +111,11 @@ class ClientInfo implements JsonUnserializable
      *
      * @return ClientInfo
      */
-    public static function decodeArray( array $parsed ): ClientInfo
+    public static function decodeArray(array $parsed): ClientInfo
     {
         $info = new ClientInfo(
             $parsed[ 'client_id' ],
-            PublicKey::decodeArray( $parsed[ 'public_key' ] ),
+            PublicKey::decodeArray($parsed[ 'public_key' ]),
             $parsed[ 'validated' ]
         );
 

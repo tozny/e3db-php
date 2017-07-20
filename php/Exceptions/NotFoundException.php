@@ -51,11 +51,11 @@ class NotFoundException extends \Exception
      * @param string $resource
      * @param Throwable|null $previous
      */
-    public function __construct( string $message, string $resource = '', Throwable $previous = null )
+    public function __construct(string $message, string $resource = '', Throwable $previous = null)
     {
         $this->resource = strtoupper($resource);
 
-        parent::__construct( $message, 404, $previous );
+        parent::__construct($message, 404, $previous);
     }
 
     /**

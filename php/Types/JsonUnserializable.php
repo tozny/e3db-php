@@ -47,7 +47,7 @@ interface JsonUnserializable
      *
      * @return mixed
      */
-    static function decode( string $json );
+    static function decode(string $json);
 
     /**
      * Specify how an already unserialized JSON array should be marshaled into
@@ -57,5 +57,5 @@ interface JsonUnserializable
      *
      * @return mixed
      */
-    static function decodeArray( array $parsed );
+    static function decodeArray(array $parsed);
 }

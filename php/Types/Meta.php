@@ -33,10 +33,10 @@ namespace Tozny\E3DB\Types;
 /**
  * Describe the meta information attributed to a specific encrypted record.
  *
- * @property-read string    $record_id     Unique ID of the record, or `null` if not yet written
+ * @property-read string $record_id     Unique ID of the record, or `null` if not yet written
  * @property-read \DateTime $created       When this record was created, or `null` if unavailable.
  * @property-read \DateTime $last_modified When this record last changed, or `null` if unavailable.
- * @property-read string    $version       Opaque version identifier created by the server on changes.
+ * @property-read string $version       Opaque version identifier created by the server on changes.
  *
  * @package Tozny\E3DB\Types
  */
@@ -82,16 +82,16 @@ class Meta implements \JsonSerializable, JsonUnserializable
      */
     public $plain = null;
 
-    public function __construct( string $writer_id, string $user_id, string $type, array $plain = null )
+    public function __construct(string $writer_id, string $user_id, string $type, array $plain = null)
     {
-        $this->_record_id = null;
-        $this->writer_id = $writer_id;
-        $this->user_id = $user_id;
-        $this->type = $type;
-        $this->plain = $plain;
-        $this->_created = null;
+        $this->_record_id     = null;
+        $this->writer_id      = $writer_id;
+        $this->user_id        = $user_id;
+        $this->type           = $type;
+        $this->plain          = $plain;
+        $this->_created       = null;
         $this->_last_modified = null;
-        $this->_version = null;
+        $this->_version       = null;
     }
 
     /**
@@ -101,14 +101,14 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @return mixed
      */
-    public function __get( string $name )
+    public function __get(string $name)
     {
         $key = "_{$name}";
         if (property_exists($this, $key)) {
             return $this->$key;
         }
 
-        trigger_error( "Undefined property: Meta::{$name}", E_USER_NOTICE );
+        trigger_error("Undefined property: Meta::{$name}", E_USER_NOTICE);
         return null;
     }
 
@@ -123,8 +123,8 @@ class Meta implements \JsonSerializable, JsonUnserializable
             'user_id'       => $this->user_id,
             'type'          => $this->type,
             'plain'         => $this->plain,
-            'created'       => self::jsonSerializeDate( $this->_created ),
-            'last_modified' => self::jsonSerializeDate( $this->_last_modified ),
+            'created'       => self::jsonSerializeDate($this->_created),
+            'last_modified' => self::jsonSerializeDate($this->_last_modified),
             'version'       => $this->_version,
         ];
     }
@@ -139,15 +139,15 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @throws \Exception
      */
-    public static function decode( string $json ): Meta
+    public static function decode(string $json): Meta
     {
-        $data = \json_decode( $json, true );
+        $data = \json_decode($json, true);
 
-        if ( null === $data ) {
-            throw new \Exception( 'Error decoding Meta JSON' );
+        if (null === $data) {
+            throw new \Exception('Error decoding Meta JSON');
         }
 
-        return self::decodeArray( $data );
+        return self::decodeArray($data);
     }
 
     /**
@@ -158,18 +158,18 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @return Meta
      */
-    public static function decodeArray( array $parsed ): Meta
+    public static function decodeArray(array $parsed): Meta
     {
         $meta = new Meta(
-            $parsed['writer_id'],
-            $parsed['user_id'],
-            $parsed['type'],
-            $parsed['plain']
+            $parsed[ 'writer_id' ],
+            $parsed[ 'user_id' ],
+            $parsed[ 'type' ],
+            $parsed[ 'plain' ]
         );
-        $meta->_record_id = $parsed['record_id'];
-        $meta->_created = new \DateTime( $parsed['created'] );
-        $meta->_last_modified = new \DateTime( $parsed['last_modified'] );
-        $meta->_version = $parsed['version'];
+        $meta->_record_id     = $parsed[ 'record_id' ];
+        $meta->_created       = new \DateTime($parsed[ 'created' ]);
+        $meta->_last_modified = new \DateTime($parsed[ 'last_modified' ]);
+        $meta->_version       = $parsed[ 'version' ];
 
         return $meta;
     }
@@ -181,10 +181,10 @@ class Meta implements \JsonSerializable, JsonUnserializable
      *
      * @return mixed
      */
-    protected static function jsonSerializeDate( $date )
+    protected static function jsonSerializeDate($date)
     {
-        if ( $date !== null ) {
-            return $date->format( \DateTime::ISO8601 );
+        if ($date !== null) {
+            return $date->format(\DateTime::ISO8601);
         }
 
         return null;

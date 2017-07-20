@@ -58,17 +58,17 @@ abstract class Connection
 
     abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak);
 
-    abstract function find_client( string $email ): Response;
+    abstract function find_client(string $email): Response;
 
-    abstract function get_client( string $client_id ): Response;
+    abstract function get_client(string $client_id): Response;
 
-    abstract function post( string $path, Record $record ): Response;
+    abstract function post(string $path, Record $record): Response;
 
-    abstract function get( string $path ): Response;
+    abstract function get(string $path): Response;
 
-    abstract function put( string $path, Record $record ): Response;
+    abstract function put(string $path, Record $record): Response;
 
-    abstract function delete( string $path ): Response;
+    abstract function delete(string $path): Response;
 
     /**
      * Build up a URL based on path parameters
@@ -90,37 +90,37 @@ abstract class Connection
      *
      * @return string Raw binary string of the access key
      */
-    protected function decrypt_eak( array $json ): string
+    protected function decrypt_eak(array $json): string
     {
         $key = $json[ 'authorizer_public_key' ][ 'curve25519' ];
-        $public_key = base64decode( $key );
-        $private_key = base64decode( $this->config->private_key );
+        $public_key = base64decode($key);
+        $private_key = base64decode($this->config->private_key);
 
-        $fields = explode( '.', $json[ 'eak' ] );
-        $ciphertext = base64decode( $fields[ 0 ] );
-        $nonce = base64decode( $fields[ 1 ] );
+        $fields = explode('.', $json[ 'eak' ]);
+        $ciphertext = base64decode($fields[ 0 ]);
+        $nonce = base64decode($fields[ 1 ]);
 
         // Build keypair
-        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey( $private_key, $public_key );
+        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
 
-        return sodium_crypto_box_open( $ciphertext, $nonce, $keypair );
+        return sodium_crypto_box_open($ciphertext, $nonce, $keypair);
     }
 
     /**
      * Encrypt an access key for a given reader.
      *
-     * @param string $ak         Raw binary string of the access key
+     * @param string $ak Raw binary string of the access key
      * @param string $reader_key Base64url-encoded public key of the reader
      *
      * @return string Encryted and encoded access key.
      */
-    protected function encrypt_ak( string $ak, string $reader_key ): string
+    protected function encrypt_ak(string $ak, string $reader_key): string
     {
-        $public_key = base64decode( $reader_key );
-        $private_key = base64decode( $this->config->private_key );
+        $public_key = base64decode($reader_key);
+        $private_key = base64decode($this->config->private_key);
 
         // Build keypair
-        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey( $private_key, $public_key );
+        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
 
         $nonce = \random_bytes(CRYPTO_BOX_NONCEBYTES);
         $eak = sodium_crypto_box($ak, $nonce, $keypair);

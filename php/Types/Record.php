@@ -53,10 +53,10 @@ class Record implements \JsonSerializable, JsonUnserializable
      */
     public $data;
 
-    public function __construct( Meta $meta, array $data )
+    public function __construct(Meta $meta, array $data)
     {
         $this->_meta = $meta;
-        $this->data = $data;
+        $this->data  = $data;
     }
 
     /**
@@ -66,14 +66,14 @@ class Record implements \JsonSerializable, JsonUnserializable
      *
      * @return mixed
      */
-    public function __get( string $name )
+    public function __get(string $name)
     {
         $key = "_{$name}";
         if (property_exists($this, $key)) {
             return $this->$key;
         }
 
-        trigger_error( "Undefined property: Record::{$name}", E_USER_NOTICE );
+        trigger_error("Undefined property: Record::{$name}", E_USER_NOTICE);
         return null;
     }
 
@@ -98,15 +98,15 @@ class Record implements \JsonSerializable, JsonUnserializable
      *
      * @throws \Exception
      */
-    public static function decode( string $json ): Record
+    public static function decode(string $json): Record
     {
-        $data = \json_decode( $json, true );
+        $data = \json_decode($json, true);
 
-        if ( null === $data ) {
-            throw new \Exception( 'Error decoding Record JSON' );
+        if (null === $data) {
+            throw new \Exception('Error decoding Record JSON');
         }
 
-        return self::decodeArray( $data );
+        return self::decodeArray($data);
     }
 
     /**
@@ -117,8 +117,8 @@ class Record implements \JsonSerializable, JsonUnserializable
      *
      * @return Record
      */
-    public static function decodeArray( array $parsed ): Record
+    public static function decodeArray(array $parsed): Record
     {
-        return new Record( Meta::decodeArray( $parsed[ 'meta' ] ), $parsed[ 'data' ] );
+        return new Record(Meta::decodeArray($parsed[ 'meta' ]), $parsed[ 'data' ]);
     }
 }

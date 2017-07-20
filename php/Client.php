@@ -55,7 +55,7 @@ class Client
     private $config;
     private $conn;
 
-    public function __construct( Config $config, Connection $conn )
+    public function __construct(Config $config, Connection $conn)
     {
         $this->config = $config;
         $this->conn = $conn;
@@ -73,10 +73,10 @@ class Client
      * @throws NotFoundException If no client is found, or if a client is undiscoverable via email.
      * @throws \RuntimeException If there is an error deserializing the data from the server
      */
-    public function client_info( string $client_id ) : ClientInfo
+    public function client_info(string $client_id): ClientInfo
     {
         try {
-            if ( filter_var( $client_id, FILTER_VALIDATE_EMAIL ) ) {
+            if (filter_var($client_id, FILTER_VALIDATE_EMAIL)) {
                 $info = $this->conn->find_client($client_id);
             } else {
                 $info = $this->conn->get_client($client_id);
@@ -85,7 +85,7 @@ class Client
             throw new NotFoundException('Count not retrieve info from the server.', 'client');
         }
 
-        return ClientInfo::decode( $info->getBody() );
+        return ClientInfo::decode($info->getBody());
     }
 
     /**
@@ -95,13 +95,13 @@ class Client
      *
      * @return PublicKey
      */
-    public function client_key( string $client_id ) : PublicKey
+    public function client_key(string $client_id): PublicKey
     {
-        if ( $this->config->client_id === $client_id ) {
-            return new PublicKey( $this->config->public_key );
+        if ($this->config->client_id === $client_id) {
+            return new PublicKey($this->config->public_key);
         }
 
-        return $this->client_info( $client_id )->public_key;
+        return $this->client_info($client_id)->public_key;
     }
 
     /**
@@ -115,17 +115,17 @@ class Client
      * @throws NotFoundException If no record is found or if the record is unreadable.
      * @throws \RuntimeException If there is an error deserializing the data from the server.
      */
-    public function read_raw( string $record_id ): Record
+    public function read_raw(string $record_id): Record
     {
-        $path = $this->conn->uri( 'v1', 'storage', 'records', $record_id );
+        $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
 
         try {
-            $resp = $this->conn->get( $path );
-        } catch ( RequestException $re ) {
-            throw new NotFoundException( 'Count not retrieve data from the server.', 'record' );
+            $resp = $this->conn->get($path);
+        } catch (RequestException $re) {
+            throw new NotFoundException('Count not retrieve data from the server.', 'record');
         }
 
-        return Record::decode( $resp->getBody() );
+        return Record::decode($resp->getBody());
     }
 
     /**
@@ -135,23 +135,23 @@ class Client
      *
      * @return Record
      */
-    public function read( string $record_id ): Record
+    public function read(string $record_id): Record
     {
-        return $this->decrypt_record( $this->read_raw( $record_id ) );
+        return $this->decrypt_record($this->read_raw($record_id));
     }
 
     /**
      * Create a new record entry with E3DB.
      *
-     * @param string     $type    The content type with which to associate the record.
-     * @param array      $data    A hashmap of the data to encrypt and store
+     * @param string $type The content type with which to associate the record.
+     * @param array $data A hashmap of the data to encrypt and store
      * @param array|null [$plain] Optional hashmap of data to store with the record's meta in plaintext.
      *
      * @return Record
      *
      * @throws \RuntimeException If there is an error while persisting the data with E3DB.
      */
-    public function write( string $type, array $data, array $plain = null ): Record
+    public function write(string $type, array $data, array $plain = null): Record
     {
         $path = $this->conn->uri('v1', 'storage', 'records');
         $writer = $this->config->client_id;
@@ -163,11 +163,11 @@ class Client
 
         try {
             $resp = $this->conn->post($path, $this->encrypt_record($record));
-        } catch ( RequestException $re ) {
-            throw new \RuntimeException( 'Error while writing record data!' );
+        } catch (RequestException $re) {
+            throw new \RuntimeException('Error while writing record data!');
         }
 
-        return $this->decrypt_record( Record::decode( $resp->getBody() ) );
+        return $this->decrypt_record(Record::decode($resp->getBody()));
     }
 
     /**
@@ -177,17 +177,17 @@ class Client
      *
      * @throws ConflictException If the version ID in the record does not match the latest version stored on the server.
      */
-    public function update( Record $record ): void
+    public function update(Record $record): void
     {
         $record_id = $record->meta->record_id;
         $version = $record->meta->version;
 
-        $path = $this->conn->uri('v1', 'storage', 'records', 'safe', $record_id, $version );
+        $path = $this->conn->uri('v1', 'storage', 'records', 'safe', $record_id, $version);
         try {
             $this->conn->put($path, $this->encrypt_record($record));
         } catch (RequestException $re) {
             if ($re->getResponse()->getStatusCode() === 409) {
-                throw new ConflictException("Conflict updating record ID {$record_id}", 'record' );
+                throw new ConflictException("Conflict updating record ID {$record_id}", 'record');
             }
 
             throw $re;
@@ -199,20 +199,20 @@ class Client
      *
      * @param string $record_id
      */
-    public function delete( string $record_id ): void
+    public function delete(string $record_id): void
     {
-        $path = $this->conn->uri( 'v1', 'storage', 'records', $record_id );
+        $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
         try {
-            $this->conn->delete( $path );
-        } catch ( RequestException $re ) {
-            switch ( $re->getResponse()->getStatusCode() ) {
+            $this->conn->delete($path);
+        } catch (RequestException $re) {
+            switch ($re->getResponse()->getStatusCode()) {
                 case 404:
                 case 410:
                     // If the record never existed, or is already missing, return
                     return;
                 default:
                     // Something else went wrong!
-                    throw new \RuntimeException( 'Error while deleting record data!' );
+                    throw new \RuntimeException('Error while deleting record data!');
                     break;
             }
         }
@@ -225,7 +225,7 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record( Record $record ): Record
+    private function decrypt_record(Record $record): Record
     {
         $ak = $this->conn->get_access_key(
             $record->meta->writer_id,
@@ -234,7 +234,7 @@ class Client
             $record->meta->type
         );
 
-        return $this->decrypt_record_with_key( $record, $ak );
+        return $this->decrypt_record_with_key($record, $ak);
     }
 
     /**
@@ -246,23 +246,23 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record_with_key( Record $encrypted, string $access_key ): Record
+    private function decrypt_record_with_key(Record $encrypted, string $access_key): Record
     {
         $data = [];
 
-        array_walk( $encrypted->data, function ( $cipher, $key ) use ( $access_key, &$data ) {
-            $fields = explode( '.', $cipher );
+        array_walk($encrypted->data, function ($cipher, $key) use ($access_key, &$data) {
+            $fields = explode('.', $cipher);
 
-            $edk = base64decode( $fields[ 0 ] );
-            $edkN = base64decode( $fields[ 1 ] );
-            $ef = base64decode( $fields[ 2 ] );
-            $efN = base64decode( $fields[ 3 ] );
+            $edk = base64decode($fields[ 0 ]);
+            $edkN = base64decode($fields[ 1 ]);
+            $ef = base64decode($fields[ 2 ]);
+            $efN = base64decode($fields[ 3 ]);
 
-            $dk = crypto_secretbox_open( $edk, $edkN, $access_key );
-            $data[ $key ] = crypto_secretbox_open( $ef, $efN, $dk );
-        } );
+            $dk = crypto_secretbox_open($edk, $edkN, $access_key);
+            $data[ $key ] = crypto_secretbox_open($ef, $efN, $dk);
+        });
 
-        return new Record( $encrypted->meta, $data );
+        return new Record($encrypted->meta, $data);
     }
 
     /**
@@ -273,7 +273,7 @@ class Client
      *
      * @return Record
      */
-    private function encrypt_record( Record $record ): Record
+    private function encrypt_record(Record $record): Record
     {
         $data = [];
 
@@ -285,7 +285,7 @@ class Client
                 $record->meta->type
             );
         } catch (RequestException $re) {
-            switch($re->getResponse()->getStatusCode()) {
+            switch ($re->getResponse()->getStatusCode()) {
                 case 404:
                     // Create a random AK
                     $ak = random_key();
@@ -304,19 +304,19 @@ class Client
             }
         }
 
-        array_walk( $record->data, function ( $plain, $key ) use ( $ak, &$data ) {
+        array_walk($record->data, function ($plain, $key) use ($ak, &$data) {
             $dk = random_key();
             $efN = random_nonce();
-            $ef = crypto_secretbox( $plain, $efN, $dk );
+            $ef = crypto_secretbox($plain, $efN, $dk);
             $edkN = random_nonce();
-            $edk = crypto_secretbox( $dk, $edkN, $ak );
+            $edk = crypto_secretbox($dk, $edkN, $ak);
 
-            $data[ $key ] = sprintf( '%s.%s.%s.%s',
-                base64encode( $edk ), base64encode( $edkN ),
-                base64encode( $ef ), base64encode( $efN )
+            $data[ $key ] = sprintf('%s.%s.%s.%s',
+                base64encode($edk), base64encode($edkN),
+                base64encode($ef), base64encode($efN)
             );
-        } );
+        });
 
-        return new Record( $record->meta, $data );
+        return new Record($record->meta, $data);
     }
 }

@@ -44,97 +44,97 @@ class GuzzleConnection extends Connection
 {
     private $client;
 
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
-        parent::__construct( $config );
+        parent::__construct($config);
 
-        $auth_client = new Client( [ 'base_uri' => $config->api_url ] );
+        $auth_client = new Client(['base_uri' => $config->api_url]);
         $auth_config = [
             PasswordCredentials::CONFIG_CLIENT_ID => $config->api_key_id,
             PasswordCredentials::CONFIG_CLIENT_SECRET => $config->api_secret,
             PasswordCredentials::CONFIG_TOKEN_URL => '/v1/auth/token',
             'scope' => null,
         ];
-        $grant = new ClientCredentials( $auth_client, $auth_config );
-        $refresh = new RefreshToken( $auth_client, $auth_config );
-        $middleware = new OAuthMiddleware( $auth_client, $grant, $refresh );
+        $grant = new ClientCredentials($auth_client, $auth_config);
+        $refresh = new RefreshToken($auth_client, $auth_config);
+        $middleware = new OAuthMiddleware($auth_client, $grant, $refresh);
 
         $handlerStack = HandlerStack::create();
-        $handlerStack->push( $middleware->onBefore() );
-        $handlerStack->push( $middleware->onFailure( 5 ) );
+        $handlerStack->push($middleware->onBefore());
+        $handlerStack->push($middleware->onFailure(5));
 
-        $this->client = new Client( [
+        $this->client = new Client([
             'handler' => $handlerStack,
             'base_uri' => $config->api_url,
             'auth' => 'oauth2',
-        ] );
+        ]);
     }
 
-    function get_access_key( string $writer_id, string $user_id, string $reader_id, string $type )
+    function get_access_key(string $writer_id, string $user_id, string $reader_id, string $type)
     {
         $cache_key = "{$writer_id}.{$user_id}.{$type}";
-        if ( array_key_exists( $cache_key, $this->ak_cache ) ) {
+        if (array_key_exists($cache_key, $this->ak_cache)) {
             return $this->ak_cache[ $cache_key ];
         }
 
-        $path = $this->uri( 'v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type );
-        $response = $this->client->request( 'GET', $path );
-        $data = json_decode( $response->getBody(), true );
+        $path = $this->uri('v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type);
+        $response = $this->client->request('GET', $path);
+        $data = json_decode($response->getBody(), true);
 
-        if ( null === $data ) {
+        if (null === $data) {
             return null;
         }
 
-        $key = $this->decrypt_eak( $data );
+        $key = $this->decrypt_eak($data);
         $this->ak_cache[ $cache_key ] = $key;
 
         return $key;
     }
 
-    function put_access_key( string $writer_id, string $user_id, string $reader_id, string $type, string $ak ): void
+    function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void
     {
         $cache_key = "{$writer_id}.{$user_id}.{$type}";
-        $this->ak_cache[$cache_key] = $ak;
+        $this->ak_cache[ $cache_key ] = $ak;
 
         // Get the reader's public key
-        $client_info = json_decode( $this->get_client( $reader_id )->getBody(), true);
-        $reader_key = $client_info['public_key']['curve25519'];
+        $client_info = json_decode($this->get_client($reader_id)->getBody(), true);
+        $reader_key = $client_info[ 'public_key' ][ 'curve25519' ];
 
-        $encoded = $this->encrypt_ak( $ak, $reader_key );
+        $encoded = $this->encrypt_ak($ak, $reader_key);
 
-        $path = $this->uri( 'v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type );
+        $path = $this->uri('v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type);
         $this->client->request('PUT', $path, ['json' => ['eak' => $encoded]]);
     }
 
-    function find_client( string $email ): Response
+    function find_client(string $email): Response
     {
-        $path = $this->uri( 'v1', 'storage', 'clients', 'find' );
-        return $this->client->request( 'POST', $path, [ 'query' => [ 'email' => $email ] ] );
+        $path = $this->uri('v1', 'storage', 'clients', 'find');
+        return $this->client->request('POST', $path, ['query' => ['email' => $email]]);
     }
 
-    function get_client( string $client_id ) : Response
+    function get_client(string $client_id): Response
     {
-        $path = $this->uri( 'v1', 'storage', 'clients', $client_id );
-        return $this->client->request( 'GET', $path );
+        $path = $this->uri('v1', 'storage', 'clients', $client_id);
+        return $this->client->request('GET', $path);
     }
 
-    function post( string $path, Record $record ): Response
+    function post(string $path, Record $record): Response
     {
-        return $this->client->request( 'POST', $path, [ 'json' => $record ] );
+        return $this->client->request('POST', $path, ['json' => $record]);
     }
 
-    function get( string $path ): Response
+    function get(string $path): Response
     {
-        return $this->client->request( 'GET', $path );
+        return $this->client->request('GET', $path);
     }
 
-    function put( string $path, Record $record ): Response
+    function put(string $path, Record $record): Response
     {
-        return $this->client->request( 'PUT', $path, [ 'json' => $record ] );
+        return $this->client->request('PUT', $path, ['json' => $record]);
     }
 
-    function delete( string $path ): Response
+    function delete(string $path): Response
     {
-        return $this->client->request( 'DELETE', $path );
+        return $this->client->request('DELETE', $path);
     }
 }
