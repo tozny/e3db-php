@@ -28,6 +28,8 @@
  * @license    MIT License
  */
 
+declare(strict_types=1);
+
 namespace Tozny\E3DB\Types;
 
 /**

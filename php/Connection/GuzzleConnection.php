@@ -28,6 +28,8 @@
  * @license    MIT License
  */
 
+declare(strict_types=1);
+
 namespace Tozny\E3DB\Connection;
 
 use GuzzleHttp\Client;
@@ -79,7 +81,7 @@ class GuzzleConnection extends Connection
 
         $path = $this->uri('v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type);
         $response = $this->client->request('GET', $path);
-        $data = json_decode($response->getBody(), true);
+        $data = json_decode((string) $response->getBody(), true);
 
         if (null === $data) {
             return null;
@@ -97,7 +99,7 @@ class GuzzleConnection extends Connection
         $this->ak_cache[ $cache_key ] = $ak;
 
         // Get the reader's public key
-        $client_info = json_decode($this->get_client($reader_id)->getBody(), true);
+        $client_info = json_decode((string) $this->get_client($reader_id)->getBody(), true);
         $reader_key = $client_info[ 'public_key' ][ 'curve25519' ];
 
         $encoded = $this->encrypt_ak($ak, $reader_key);

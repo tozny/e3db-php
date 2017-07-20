@@ -28,6 +28,8 @@
  * @license    MIT License
  */
 
+declare(strict_types=1);
+
 namespace Tozny\E3DB\Crypto;
 
 use const Sodium\CRYPTO_SECRETBOX_KEYBYTES;
@@ -40,7 +42,7 @@ use const Sodium\CRYPTO_SECRETBOX_NONCEBYTES;
  *
  * @return string
  */
-function base64encode(string $data)
+function base64encode(string $data): string
 {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
 }
@@ -56,12 +58,22 @@ function base64decode(string $raw)
     return base64_decode(str_pad(strtr($raw, '-_', '+/'), strlen($raw) % 4, '=', STR_PAD_RIGHT));
 }
 
-function random_nonce()
+/**
+ * Generate a random nonce for use with Sodium's secretbox abstraction.
+ *
+ * @return string
+ */
+function random_nonce(): string
 {
     return \random_bytes(CRYPTO_SECRETBOX_NONCEBYTES);
 }
 
-function random_key()
+/**
+ * Generate a random Sodium secretbox encryption key.
+ *
+ * @return string
+ */
+function random_key(): string
 {
     return \random_bytes(CRYPTO_SECRETBOX_KEYBYTES);
 }

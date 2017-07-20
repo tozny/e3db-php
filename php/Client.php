@@ -28,6 +28,8 @@
  * @license    MIT License
  */
 
+declare(strict_types=1);
+
 namespace Tozny\E3DB;
 
 use GuzzleHttp\Exception\RequestException;
@@ -85,7 +87,7 @@ class Client
             throw new NotFoundException('Count not retrieve info from the server.', 'client');
         }
 
-        return ClientInfo::decode($info->getBody());
+        return ClientInfo::decode((string) $info->getBody());
     }
 
     /**
@@ -125,7 +127,7 @@ class Client
             throw new NotFoundException('Count not retrieve data from the server.', 'record');
         }
 
-        return Record::decode($resp->getBody());
+        return Record::decode((string) $resp->getBody());
     }
 
     /**
@@ -167,7 +169,7 @@ class Client
             throw new \RuntimeException('Error while writing record data!');
         }
 
-        return $this->decrypt_record(Record::decode($resp->getBody()));
+        return $this->decrypt_record(Record::decode((string) $resp->getBody()));
     }
 
     /**
