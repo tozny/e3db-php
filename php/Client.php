@@ -266,7 +266,6 @@ class Client
     }
 
     /**
-     *
      * Query E3DB records according to a set of selection criteria.
      *
      * The default behavior is to return all records written by the
@@ -300,6 +299,52 @@ class Client
 
         $query = new Query(0, $data, $writer, $record, $type, $plain, null, $page_size, $all_writers);
         return new QueryResult($this, $query, $raw);
+    }
+
+    /**
+     * Grant another E3DB client access to records of a particular type.
+     *
+     * @param string $type      Type of records to share
+     * @param string $reader_id Client ID or email address of reader to grant access to
+     */
+    public function share(string $type, string $reader_id): void
+    {
+        if ($reader_id === $this->config->client_id) {
+            return;
+        } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
+            $reader_id = $this->client_info($reader_id)->client_id;
+        }
+
+        $id = $this->config->client_id;
+        $path = $this->conn->uri('v1', 'storage', 'policy', $id, $id, $reader_id, $type);
+
+        $allow = new \stdClass();
+        $allow->allow = [['read' => new \stdClass()]];
+
+        $this->conn->put($path, $allow);
+    }
+
+    /**
+     * Revoke another E3DB client's access to records of a particular type.
+     *
+     * @param string $type      Type of records to share
+     * @param string $reader_id Client ID or email address of reader to grant access from
+     */
+    public function revoke(string $type, string $reader_id): void
+    {
+        if ($reader_id === $this->config->client_id) {
+            return;
+        } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
+            $reader_id = $this->client_info($reader_id)->client_id;
+        }
+
+        $id = $this->config->client_id;
+        $path = $this->conn->uri('v1', 'storage', 'policy', $id, $id, $reader_id, $type);
+
+        $deny = new \stdClass();
+        $deny->deny = [['read' => new \stdClass()]];
+
+        $this->conn->put($path, $deny);
     }
 
     /**

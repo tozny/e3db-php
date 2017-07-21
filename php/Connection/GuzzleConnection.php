@@ -184,14 +184,14 @@ class GuzzleConnection extends Connection
     /**
      * Update an object with E3DB
      *
-     * @param string $path   API endpoint to request
-     * @param Record $record Object to be updated
+     * @param string $path API endpoint to request
+     * @param object $obj  Object to be updated
      *
      * @return Response PSR7 response object
      */
-    function put(string $path, Record $record): Response
+    function put(string $path, $obj): Response
     {
-        return $this->client->request('PUT', $path, ['json' => $record]);
+        return $this->client->request('PUT', $path, ['json' => $obj]);
     }
 
     /**

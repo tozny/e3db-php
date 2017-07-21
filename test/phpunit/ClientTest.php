@@ -10,6 +10,9 @@ use Tozny\E3DB\Types\Record;
 
 class ClientTest extends TestCase
 {
+    const TEST_SHARE_CLIENT = 'dac7899f-c474-4386-9ab8-f638dcc50dec';
+    const TEST_SHARE_EMAIL = 'ijones+feedback@tozny.com';
+
     /**
      * @var Config
      */
@@ -200,5 +203,19 @@ class ClientTest extends TestCase
 
         $this->assertArrayHasKey( 'third', $fetched->data );
         $this->assertEquals( 'Misc', $fetched->data[ 'third' ] );
+    }
+
+    public function test_share()
+    {
+        $this->client->share($this->type, self::TEST_SHARE_CLIENT);
+
+        $this->client->revoke($this->type, self::TEST_SHARE_CLIENT);
+
+        $this->client->share($this->type, self::TEST_SHARE_EMAIL);
+
+        $this->client->revoke($this->type, self::TEST_SHARE_EMAIL);
+
+        // If we've gotten to here with no errors or exceptions, then we assume sharing/revocation worked!
+        $this->assertTrue(true);
     }
 }

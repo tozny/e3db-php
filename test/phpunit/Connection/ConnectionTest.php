@@ -113,7 +113,7 @@ class ConcreteConnection extends Connection
         // TODO: Implement get() method.
     }
 
-    function put(string $path, Record $record): Response
+    function put(string $path, $obj): Response
     {
         // TODO: Implement put() method.
     }

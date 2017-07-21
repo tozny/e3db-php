@@ -119,12 +119,12 @@ abstract class Connection
     /**
      * Update an object with E3DB
      *
-     * @param string $path   API endpoint to request
-     * @param Record $record Object to be updated
+     * @param string $path API endpoint to request
+     * @param object $obj  Object to be updated
      *
      * @return Response PSR7 response object
      */
-    abstract function put(string $path, Record $record): Response;
+    abstract function put(string $path, $obj): Response;
 
     /**
      * Delete an object from E3DB

@@ -44,7 +44,7 @@ class QueryTest extends TestCase
 
         $encoded = \json_encode($query1);
         $this->assertEquals(
-            '{"count":5,"include_data":true,"writer_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","user_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","record_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","content_types":"test","plain":{"meta":"exists"},"after_index":0,"include_all_writers":false}',
+            '{"count":5,"include_data":true,"writer_ids":["4a732eb3-de77-4be1-96d1-da6ef8d67f2f"],"user_ids":["4a732eb3-de77-4be1-96d1-da6ef8d67f2f"],"record_ids":["4a732eb3-de77-4be1-96d1-da6ef8d67f2f"],"content_types":["test"],"plain":{"meta":"exists"},"after_index":0,"include_all_writers":false}',
             $encoded
         );
 
