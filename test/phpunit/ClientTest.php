@@ -6,6 +6,7 @@ use Tozny\E3DB\Connection\Connection;
 use Tozny\E3DB\Connection\GuzzleConnection;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
+use Tozny\E3DB\Types\Record;
 
 class ClientTest extends TestCase
 {
@@ -24,6 +25,16 @@ class ClientTest extends TestCase
      */
     private $client;
 
+    /**
+     * @var string
+     */
+    private $type;
+
+    /**
+     * @var Record
+     */
+    private $record;
+
     public function setUp()
     {
         $this->config = new Config();
@@ -38,6 +49,10 @@ class ClientTest extends TestCase
         $this->conn = new GuzzleConnection($this->config);
 
         $this->client = new Client($this->config, $this->conn);
+
+        // Write a record
+        $this->type = uniqid('type_');
+        $this->record = $this->client->write($this->type, ['test' => 'data']);
 
         parent::setUp();
     }
@@ -88,22 +103,53 @@ class ClientTest extends TestCase
 
     public function test_read_raw()
     {
-        $record_id = '41214987-7998-441c-8680-3b96e92c2c76';
+        $record = $this->client->read_raw($this->record->meta->record_id);
 
-        $record = $this->client->read_raw($record_id);
-
-        $this->assertEquals($record_id, $record->meta->record_id);
+        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
     }
 
     public function test_read()
     {
-        $record_id = '41214987-7998-441c-8680-3b96e92c2c76';
+        $record = $this->client->read($this->record->meta->record_id);
 
-        $record = $this->client->read($record_id);
-
-        $this->assertEquals($record_id, $record->meta->record_id);
+        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
         $this->assertArrayHasKey('test', $record->data);
-        $this->assertEquals('123', $record->data['test']);
+        $this->assertEquals('data', $record->data['test']);
+    }
+
+    public function test_query()
+    {
+        $data = $this->client->query(true, false, null, $this->record->meta->record_id);
+
+        $this->assertEquals(1, count($data));
+
+        $record = $data[0];
+        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
+    }
+
+    public function test_query_iteration()
+    {
+        // Write some record
+        $type = uniqid('type_');
+
+        foreach(range(0, 10) as $i) {
+            $this->client->write($type, ['test' => 'data'], ['index' => (string) $i]);
+        }
+
+        // Retrieve records
+        $records = $this->client->query(true, false, null, null, $type);
+
+        $counted = [];
+        foreach($records as $record) {
+            $this->assertEquals('data', $record->data['test']);
+            $counted[] = $record->meta->plain['index'];
+        }
+
+        $total = array_reduce($counted, function ($carry, $item) {
+            return $carry + intval($item);
+        }, 0);
+
+        $this->assertEquals(55, $total);
     }
 
     public function test_read_error()

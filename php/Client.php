@@ -309,7 +309,7 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record(Record $record): Record
+    protected function decrypt_record(Record $record): Record
     {
         $ak = $this->conn->get_access_key(
             $record->meta->writer_id,
@@ -330,7 +330,7 @@ class Client
      *
      * @return Record
      */
-    private function decrypt_record_with_key(Record $encrypted, string $access_key): Record
+    public function decrypt_record_with_key(Record $encrypted, string $access_key): Record
     {
         $data = [];
 
@@ -357,7 +357,7 @@ class Client
      *
      * @return Record
      */
-    private function encrypt_record(Record $record): Record
+    protected function encrypt_record(Record $record): Record
     {
         $data = [];
 

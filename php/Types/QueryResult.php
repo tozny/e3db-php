@@ -41,7 +41,7 @@ use Tozny\E3DB\Client;
  *
  * @package Tozny\E3DB\Types
  */
-class QueryResult implements \Iterator
+class QueryResult implements \Iterator, \Countable, \ArrayAccess
 {
     /**
      * @var Client E3DB client instance for performing actual queries and crypto work.
@@ -58,6 +58,10 @@ class QueryResult implements \Iterator
      */
     private $raw;
 
+    private $position = 0;
+
+    private $data = [];
+
     public function __construct(Client $client, Query $query, bool $raw)
     {
         $this->client = $client;
@@ -65,7 +69,7 @@ class QueryResult implements \Iterator
         $this->raw = $raw;
 
         // Execute the query and store the results internally
-
+        $this->data = $this->results($query);
     }
 
     protected function results(Query $query)
@@ -74,67 +78,146 @@ class QueryResult implements \Iterator
         try {
             $response = $this->client->conn->post($path, $query);
         } catch (RequestException $re) {
+            var_dump($re->getResponse());
             throw new \RuntimeException('Error sending query data to the API!');
         }
 
-        $data = \json_decode((string) $response->getBody());
-        var_dump($data);
+        $data = \json_decode((string) $response->getBody(), true);
+
+        return \array_map(function($result) use ($query) {
+            $record = new Record(Meta::decodeArray($result['meta']), $result['record_data']);
+
+            if ($query->include_data && ! $this->raw) {
+                $eak = $result['access_key'];
+                $access_key = $this->client->conn->decrypt_eak($eak);
+
+                $record = $this->client->decrypt_record_with_key($record, $access_key);
+            }
+
+            return $record;
+        }, $data['results']);
     }
 
     /**
-     * Return the current element
+     * Return the current result
+     *
      * @link http://php.net/manual/en/iterator.current.php
-     * @return mixed Can return any type.
-     * @since 5.0.0
+     *
+     * @return Record
      */
-    public function current()
+    public function current(): Record
     {
-        // TODO: Implement current() method.
+        return $this->data[$this->position];
     }
 
     /**
-     * Move forward to next element
+     * Move forward to next result
+     *
      * @link http://php.net/manual/en/iterator.next.php
-     * @return void Any returned value is ignored.
-     * @since 5.0.0
      */
-    public function next()
+    public function next(): void
     {
-        // TODO: Implement next() method.
+        ++$this->position;
     }
 
     /**
-     * Return the key of the current element
+     * Return the key of the current result
+     *
      * @link http://php.net/manual/en/iterator.key.php
+     *
      * @return mixed scalar on success, or null on failure.
-     * @since 5.0.0
      */
     public function key()
     {
-        // TODO: Implement key() method.
+        return $this->position;
     }
 
     /**
      * Checks if current position is valid
+     *
      * @link http://php.net/manual/en/iterator.valid.php
-     * @return boolean The return value will be casted to boolean and then evaluated.
-     * Returns true on success or false on failure.
-     * @since 5.0.0
+     *
+     * @return boolean True on success or false on failure.
      */
-    public function valid()
+    public function valid(): bool
     {
-        // TODO: Implement valid() method.
+        return isset($this->data[$this->position]);
     }
 
     /**
-     * Rewind the Iterator to the first element
+     * Rewind the Iterator to the first record
+     *
      * @link http://php.net/manual/en/iterator.rewind.php
-     * @return void Any returned value is ignored.
-     * @since 5.0.0
      */
-    public function rewind()
+    public function rewind(): void
     {
-        // TODO: Implement rewind() method.
+        $this->position = 0;
     }
+
+    /**
+     * Count records in the result set.
+     *
+     * @link http://php.net/manual/en/countable.count.php
+     *
+     * @return int The custom count as an integer.
+     */
+    public function count()
+    {
+        return count($this->data);
+    }
+
+    /**
+     * Whether a offset exists
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetexists.php
+     *
+     * @param mixed $offset An offset to check for.
+     * @return boolean true on success or false on failure.
+     */
+    public function offsetExists($offset): bool
+    {
+        return isset($this->data[$offset]);
+    }
+
+    /**
+     * Offset to retrieve
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetget.php
+     *
+     * @param mixed $offset The offset to retrieve.
+     *
+     * @return Record
+     */
+    public function offsetGet($offset): Record
+    {
+        return $this->data[$offset];
+    }
+
+    /**
+     * Offset to set
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetset.php
+     *
+     * @param int $offset The offset to assign the value to.
+     *
+     * @param Record $value The value to set.
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->data[$offset] = $value;
+    }
+
+    /**
+     * Offset to unset
+     *
+     * @link http://php.net/manual/en/arrayaccess.offsetunset.php
+     *
+     * @param mixed $offset The offset to unset.
+     */
+    public function offsetUnset($offset): void
+    {
+        unset($this->data[$offset]);
+    }
+
 
 }

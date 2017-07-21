@@ -155,7 +155,7 @@ abstract class Connection
      *
      * @return string Raw binary string of the access key
      */
-    protected function decrypt_eak(array $json): string
+    public function decrypt_eak(array $json): string
     {
         $key = $json[ 'authorizer_public_key' ][ 'curve25519' ];
         $public_key = base64decode($key);

@@ -73,11 +73,31 @@ class Query implements \JsonSerializable
     {
         $this->after_index = $after_index;
         $this->include_data = $include_data;
-        $this->writer_ids = $writer_ids;
-        $this->record_ids = $record_ids;
-        $this->content_types = $content_types;
-        $this->plain = $plain;
-        $this->user_ids = $user_ids;
+        if (is_array($writer_ids)) {
+            $this->writer_ids = $writer_ids;
+        } else if ($writer_ids !== null) {
+            $this->writer_ids = [$writer_ids];
+        }
+        if (is_array($record_ids)) {
+            $this->record_ids = $record_ids;
+        } else if ($record_ids !== null) {
+            $this->record_ids = [$record_ids];
+        }
+        if (is_array($content_types)) {
+            $this->content_types = $content_types;
+        } else if ($content_types !== null) {
+            $this->content_types = [$content_types];
+        }
+        if (is_array($plain)) {
+            $this->plain = $plain;
+        } else if ($plain !== null) {
+            $this->plain = [$plain];
+        }
+        if (is_array($user_ids)) {
+            $this->user_ids = $user_ids;
+        } else if ($user_ids !== null) {
+            $this->user_ids = [$user_ids];
+        }
         $this->count = $count;
         $this->include_all_writers = $include_all_writers;
     }
