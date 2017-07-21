@@ -65,4 +65,22 @@ class PublicKeyTest extends TestCase
         }
         $this->assertTrue($thrown);
     }
+
+    public function test_unset_variable()
+    {
+        $key = new PublicKey('mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs');
+
+        // The @ silences the user warning that is otherwise triggered.
+        $this->assertNull(@$key->noRealProperty);
+
+        $key->noRealProperty = 'test';
+        $this->assertNull(@$key->noRealProperty);
+    }
+
+    public function test_decode_error()
+    {
+        $this->expectException('\Exception');
+
+        PublicKey::decode('[invalid json}');
+    }
 }

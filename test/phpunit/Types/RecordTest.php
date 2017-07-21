@@ -73,4 +73,22 @@ class RecordTest extends TestCase
         }
         $this->assertTrue($thrown);
     }
+
+    public function test_unset_variable()
+    {
+        $record = new Record(new Meta('179c3fa3-98d9-42e8-8e2c-25a0db59e0ec', '179c3fa3-98d9-42e8-8e2c-25a0db59e0ec', 'test'), ['key' => 'value']);
+
+        // The @ silences the user warning that is otherwise triggered.
+        $this->assertNull(@$record->noRealProperty);
+
+        $record->noRealProperty = 'test';
+        $this->assertNull(@$record->noRealProperty);
+    }
+
+    public function test_decode_error()
+    {
+        $this->expectException('\Exception');
+
+        Record::decode('[invalid json}');
+    }
 }

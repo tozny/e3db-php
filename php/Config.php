@@ -32,6 +32,8 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB;
 
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
 /**
  * Default API endpoint location.
  *
@@ -42,44 +44,100 @@ const DEFAULT_API_URL = 'https://api.e3db.com/';
 /**
  * Configuration and credentials for E3DB.
  *
- * @package Tozny\E3DB
+ * @property-read int    $version     The version number of the configuration format (currently 1)
+ * @property-read string $client_id   The client's unique client identifier
+ * @property-read string $api_key_id  The client's non-secret API key component
+ * @property-read string $api_secret  The client's confidential API key component
+ * @property-read string $public_key  The client's Base64URL encoded Curve25519 public key
+ * @property-read string $private_key The client's Base64URL encoded Curve25519 private key
+ * @property-read string $api_url     The base URL for the E3DB API service
  *
- * @codeCoverageIgnore
+ * @package Tozny\E3DB
  */
 class Config
 {
     /**
      * @var int The version number of the configuration format (currently 1)
      */
-    public $version;
+    protected $_version = 1;
 
     /**
      * @var string The client's unique client identifier
      */
-    public $client_id;
+    protected $_client_id;
 
     /**
      * @var string The client's non-secret API key component
      */
-    public $api_key_id;
+    protected $_api_key_id;
 
     /**
      * @var string The client's confidential API key component
      */
-    public $api_secret;
+    protected $_api_secret;
 
     /**
      * @var string The client's Base64URL encoded Curve25519 public key
      */
-    public $public_key;
+    protected $_public_key;
 
     /**
      * @var string The client's Base64URL encoded Curve25519 private key
      */
-    public $private_key;
+    protected $_private_key;
 
     /**
      * @var string The base URL for the E3DB API service
      */
-    public $api_url = DEFAULT_API_URL;
+    protected $_api_url = DEFAULT_API_URL;
+
+    public function __construct(
+        string $client_id,
+        string $api_key_id,
+        string $api_secret,
+        string $public_key,
+        string $private_key,
+        string $api_url = DEFAULT_API_URL
+    )
+    {
+        $this->_client_id = $client_id;
+        $this->_api_key_id = $api_key_id;
+        $this->_api_secret = $api_secret;
+        $this->_public_key = $public_key;
+        $this->_private_key = $private_key;
+        $this->_api_url = $api_url;
+    }
+
+    /**
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
+     */
+    public function __get(string $name)
+    {
+        $key = "_{$name}";
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        trigger_error("Undefined property: Config::{$name}", E_USER_NOTICE);
+        return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['version', 'client_id', 'api_key_id', 'api_secret', 'public_key', 'private_key', 'api_url'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
+    }
 }

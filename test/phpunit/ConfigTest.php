@@ -30,39 +30,27 @@
 
 declare(strict_types=1);
 
-namespace Tozny\E3DB\Types;
+namespace Tozny\E3DB;
 
 use PHPUnit\Framework\TestCase;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 
-class ClientInfoTest extends TestCase
+class ConfigTest extends TestCase
 {
-    public function test_decoding()
-    {
-        $json = '{"client_id": "1234", "public_key": {"curve25519": "mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs"}, "validated": true}';
-
-        $decoded = ClientInfo::decode($json);
-
-        $this->assertEquals('1234', $decoded->client_id);
-        $this->assertEquals('mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs', $decoded->public_key->curve25519);
-        $this->assertEquals(true, $decoded->validated);
-    }
-
-    public function test_encoding()
-    {
-        $info = new ClientInfo('abcd', new PublicKey('mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs'), false);
-
-        $encoded = \json_encode($info);
-        $this->assertEquals('{"client_id":"abcd","public_key":{"curve25519":"mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs"},"validated":false}', $encoded);
-    }
-
     public function test_immutability()
     {
-        $info = new ClientInfo('abcd', new PublicKey('mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs'), false);
+        $config = new Config(
+            'client',
+            'api_key',
+            'secret',
+            'public',
+            'private',
+            'api_url'
+        );
 
         $thrown = false;
         try {
-            $info->client_id = 'dddd';
+            $config->version = 2;
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -70,7 +58,7 @@ class ClientInfoTest extends TestCase
 
         $thrown = false;
         try {
-            $info->public_key = new PublicKey('cWesw5-NR3JLdgJjTdbUGIU5bgIIO48arG7j2AXRYmk');
+            $config->client_id = 'different';
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -78,7 +66,39 @@ class ClientInfoTest extends TestCase
 
         $thrown = false;
         try {
-            $info->validated = true;
+            $config->api_key_id = 'different';
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        try {
+            $config->api_secret = 'different';
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        try {
+            $config->public_key = 'different';
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        try {
+            $config->private_key = 'different';
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        try {
+            $config->api_url = 'different';
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -87,19 +107,19 @@ class ClientInfoTest extends TestCase
 
     public function test_unset_variable()
     {
-        $info = new ClientInfo('abcd', new PublicKey('mRcJWM6Fe30w48Dej5ZF_HjasIIRLQVR6Rzn4HJOGTs'), false);
+        $config = new Config(
+            'client',
+            'api_key',
+            'secret',
+            'public',
+            'private',
+            'api_url'
+        );
 
         // The @ silences the user warning that is otherwise triggered.
-        $this->assertNull(@$info->noRealProperty);
+        $this->assertNull(@$config->noRealProperty);
 
-        $info->noRealProperty = 'test';
-        $this->assertNull(@$info->noRealProperty);
-    }
-
-    public function test_decode_error()
-    {
-        $this->expectException('\Exception');
-
-        ClientInfo::decode('[invalid json}');
+        $config->noRealProperty = 'test';
+        $this->assertNull(@$config->noRealProperty);
     }
 }

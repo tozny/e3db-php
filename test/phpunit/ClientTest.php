@@ -40,14 +40,14 @@ class ClientTest extends TestCase
 
     public function setUp()
     {
-        $this->config = new Config();
-        $this->config->version = 1;
-        $this->config->api_key_id = \getenv('API_KEY_ID');
-        $this->config->api_secret = \getenv('API_SECRET');
-        $this->config->api_url = \getenv('API_URL');
-        $this->config->client_id = \getenv('CLIENT_ID');
-        $this->config->public_key = \getenv('PUBLIC_KEY');
-        $this->config->private_key = \getenv('PRIVATE_KEY');
+        $this->config = new Config(
+            \getenv('CLIENT_ID'),
+            \getenv('API_KEY_ID'),
+            \getenv('API_SECRET'),
+            \getenv('PUBLIC_KEY'),
+            \getenv('PRIVATE_KEY'),
+            \getenv('API_URL')
+        );
 
         $this->conn = new GuzzleConnection($this->config);
 
@@ -64,7 +64,7 @@ class ClientTest extends TestCase
     {
         $thrown = false;
         try {
-            $this->client->config = new Config();
+            $this->client->config = new Config('', '', '', '', '', '');
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -77,6 +77,15 @@ class ClientTest extends TestCase
             $thrown = true;
         }
         $this->assertTrue($thrown);
+    }
+
+    public function test_unset_variable()
+    {
+        // The @ silences the user warning that is otherwise triggered.
+        $this->assertNull(@$this->client->noRealProperty);
+
+        $this->client->noRealProperty = 'test';
+        $this->assertNull(@$this->client->noRealProperty);
     }
 
     public function test_client_info()

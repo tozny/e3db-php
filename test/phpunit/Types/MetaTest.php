@@ -96,4 +96,22 @@ class MetaTest extends TestCase
         }
         $this->assertTrue($thrown);
     }
+
+    public function test_unset_variable()
+    {
+        $meta = new Meta('4a732eb3-de77-4be1-96d1-da6ef8d67f2f', '4a732eb3-de77-4be1-96d1-da6ef8d67f2f', 'blah');
+
+        // The @ silences the user warning that is otherwise triggered.
+        $this->assertNull(@$meta->noRealProperty);
+
+        $meta->noRealProperty = 'test';
+        $this->assertNull(@$meta->noRealProperty);
+    }
+
+    public function test_decode_error()
+    {
+        $this->expectException('\Exception');
+
+        Meta::decode('[invalid json}');
+    }
 }

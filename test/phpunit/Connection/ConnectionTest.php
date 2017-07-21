@@ -76,9 +76,7 @@ class ConcreteConnection extends Connection
 {
     public function __construct()
     {
-        $config = new Config();
-        $config->api_url = 'http://localhost';
-        $config->private_key = 'IjgGxAj4bKu6-PMshy6QUYAyLfQiZ3ZAP8KigAq8hB0';
+        $config = new Config('', '', '', '', 'IjgGxAj4bKu6-PMshy6QUYAyLfQiZ3ZAP8KigAq8hB0', 'http://localhost');
 
         parent::__construct($config);
     }
