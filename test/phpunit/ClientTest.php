@@ -4,6 +4,7 @@ namespace Tozny\E3DB;
 use PHPUnit\Framework\TestCase;
 use Tozny\E3DB\Connection\Connection;
 use Tozny\E3DB\Connection\GuzzleConnection;
+use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 
 class ClientTest extends TestCase
@@ -39,6 +40,25 @@ class ClientTest extends TestCase
         $this->client = new Client($this->config, $this->conn);
 
         parent::setUp();
+    }
+
+    public function test_immutability()
+    {
+        $thrown = false;
+        try {
+            $this->client->config = new Config();
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
+
+        $thrown = false;
+        try {
+            $this->client->conn = new GuzzleConnection($this->config);
+        } catch (ImmutabilityException $ie) {
+            $thrown = true;
+        }
+        $this->assertTrue($thrown);
     }
 
     public function test_client_info()
