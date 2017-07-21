@@ -316,6 +316,8 @@ class Client
         }
 
         $id = $this->config->client_id;
+        $ak = $this->conn->get_access_key($id, $id, $id, $type);
+        $this->conn->put_access_key($id, $id, $reader_id, $type, $ak);
         $path = $this->conn->uri('v1', 'storage', 'policy', $id, $id, $reader_id, $type);
 
         $allow = new \stdClass();
