@@ -42,15 +42,46 @@ Configuration is managed at runtime using environment variables (loading configu
 
 ## Writing a record
 
-...
+To write new records to the database, call the `Tozny\E3DB\Client::write` method with a string describing the type of data to be written, along with an associative array containing the fields of the record. `Tozny\E3DB\Client::write` returns the newly created record.
+
+```
+<?php
+$record = $client->write('contact', [
+  'first_name' => 'Jon',
+  'last_name'  => 'Snoq',
+  'phone'      => '555-555-1212',
+]);
+
+echo sprintf("Wrote record %s\n", $record->meta->record_id);
+```
 
 ## Querying records
 
-...
+E3DB supports many options for querying records based on the fields stored in record metadata. Refer to the API documentation for the complete set of options that can be passed to `Tozny\E3DB\Client::query`.
+
+For example, to list all records of type `contact` and print a simple report containing names and phone numbers:
+
+```
+$records = $client->query(true, false, null, null, 'contact');
+foreach($records as $record) {
+  $fullname = $record->data['first_name'] . ' ' . $record->data['last_name'];
+  echo sprintf("%-40s %s\n", $fullname, $record->data['phone']);
+}
+```
+
+In this example, the `Tozny\E3DB\Client::query` method returns an iterator that contains each record that matches the query.
 
 # Development
 
-...
+Before running tests, create an integration test client with the E3DB command line tool:
+
+```
+$ e3db -p integration-test register me+test@mycompany.com
+```
+
+Store the credentials returned for this client in a `.env` file at the project root (see `.env.example` for the example file layout).
+
+After checking out the repo, install dependencies using `composer install` then run PHPUnit with `./vendor/bin/phpunit` to execute all of the integration tests.
 
 ## Documentation
 
