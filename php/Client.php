@@ -41,14 +41,20 @@ use function Tozny\E3DB\Crypto\base64encode;
 use function Tozny\E3DB\Crypto\random_key;
 use function Tozny\E3DB\Crypto\random_nonce;
 use Tozny\E3DB\Exceptions\ConflictException;
+use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\ClientInfo;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
+use Tozny\E3DB\Types\Query;
+use Tozny\E3DB\Types\QueryResult;
 use Tozny\E3DB\Types\Record;
 
 /**
  * Core client module used to interact with the E3DB API.
+ *
+ * @property-read Config     $config Read-only client configuration.
+ * @property-read Connection $conn   Read-only connection information.
  *
  * @package Tozny\E3DB
  */
@@ -68,6 +74,38 @@ class Client
     {
         $this->config = $config;
         $this->conn = $conn;
+    }
+
+    /**
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        }
+
+        trigger_error("Undefined property: Client::{$name}", E_USER_NOTICE);
+        return null;
+    }
+
+    /**
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
+     */
+    public function __set($name, $value)
+    {
+        if (in_array($name, ['config', 'conn'])) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
     }
 
     /**
@@ -225,6 +263,43 @@ class Client
                     break;
             }
         }
+    }
+
+    /**
+     *
+     * Query E3DB records according to a set of selection criteria.
+     *
+     * The default behavior is to return all records written by the
+     * current authenticated client.
+     *
+     * To restrict the results to a particular type, pass a type or
+     * list of types as the `type` argument.
+     *
+     * To restrict the results to a set of clients, pass a single or
+     * list of client IDs as the `writer` argument. To list records
+     * written by any client that has shared with the current client,
+     * pass the special string 'any' as the `writer` argument.
+     *
+     * @param bool         $data      Flag to include data in records
+     * @param bool         $raw       Flag to skip decryption of data
+     * @param string|array $writer    Select records written by a single writer, a list of writers, or 'all'
+     * @param string|array $record    Select a single record or list of records
+     * @param string|array $type      Select records of a single type or a list of types
+     * @param array        $plain     Associative array of plaintext meta to use as a filter
+     * @param int          $page_size Number of records to fetch per request
+     *
+     * @return QueryResult
+     */
+    public function query(bool $data = true, bool $raw = false, $writer = null, $record = null, $type = null, $plain = null, $page_size = Query::DEFAULT_QUERY_COUNT): QueryResult
+    {
+        $all_writers = false;
+        if ($writer === 'all') {
+            $all_writers = true;
+            $writer = [];
+        }
+
+        $query = new Query(0, $data, $writer, $record, $type, $plain, null, $page_size, $all_writers);
+        return new QueryResult($this, $query, $raw);
     }
 
     /**

@@ -159,14 +159,14 @@ class GuzzleConnection extends Connection
     /**
      * Create a new object with E3DB
      *
-     * @param string $path   API endpoint to request
-     * @param Record $record Record to be created
+     * @param string $path API endpoint to request
+     * @param object $obj  Data to be created
      *
      * @return Response PSR7 response object
      */
-    function post(string $path, Record $record): Response
+    function post(string $path, $obj): Response
     {
-        return $this->client->request('POST', $path, ['json' => $record]);
+        return $this->client->request('POST', $path, ['json' => $obj]);
     }
 
     /**

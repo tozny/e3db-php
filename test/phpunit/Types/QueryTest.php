@@ -30,56 +30,28 @@
 
 declare(strict_types=1);
 
-namespace Tozny\E3DB;
+namespace Tozny\E3DB\Types;
 
-/**
- * Default API endpoint location.
- *
- * @codeCoverageIgnore
- */
-const DEFAULT_API_URL = 'https://api.e3db.com/';
+use PHPUnit\Framework\TestCase;
+use Tozny\E3DB\Exceptions\ImmutabilityException;
 
-/**
- * Configuration and credentials for E3DB.
- *
- * @package Tozny\E3DB
- *
- * @codeCoverageIgnore
- */
-class Config
+class QueryTest extends TestCase
 {
-    /**
-     * @var int The version number of the configuration format (currently 1)
-     */
-    public $version;
+    public function test_encoding()
+    {
+        // All fields
+        $query1 = new Query(0, true, '4a732eb3-de77-4be1-96d1-da6ef8d67f2f', '4a732eb3-de77-4be1-96d1-da6ef8d67f2f', 'test', ['meta' => 'exists'], '4a732eb3-de77-4be1-96d1-da6ef8d67f2f', 5, false);
 
-    /**
-     * @var string The client's unique client identifier
-     */
-    public $client_id;
+        $encoded = \json_encode($query1);
+        $this->assertEquals(
+            '{"count":5,"include_data":true,"writer_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","user_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","record_ids":"4a732eb3-de77-4be1-96d1-da6ef8d67f2f","content_types":"test","plain":{"meta":"exists"},"after_index":0,"include_all_writers":false}',
+            $encoded
+        );
 
-    /**
-     * @var string The client's non-secret API key component
-     */
-    public $api_key_id;
+        // Null fields
+        $query2 = new Query();
 
-    /**
-     * @var string The client's confidential API key component
-     */
-    public $api_secret;
-
-    /**
-     * @var string The client's Base64URL encoded Curve25519 public key
-     */
-    public $public_key;
-
-    /**
-     * @var string The client's Base64URL encoded Curve25519 private key
-     */
-    public $private_key;
-
-    /**
-     * @var string The base URL for the E3DB API service
-     */
-    public $api_url = DEFAULT_API_URL;
+        $encoded = \json_encode($query2);
+        $this->assertEquals('{"count":100,"include_data":false,"after_index":0,"include_all_writers":false}', $encoded);
+    }
 }

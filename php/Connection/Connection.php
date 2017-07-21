@@ -100,12 +100,12 @@ abstract class Connection
     /**
      * Create a new object with E3DB
      *
-     * @param string $path   API endpoint to request
-     * @param Record $record Record to be created
+     * @param string $path API endpoint to request
+     * @param object $obj  Record to be created
      *
      * @return Response PSR7 response object
      */
-    abstract function post(string $path, Record $record): Response;
+    abstract function post(string $path, $obj): Response;
 
     /**
      * Retrieve an object from E3DB

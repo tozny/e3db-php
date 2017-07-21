@@ -103,7 +103,7 @@ class ConcreteConnection extends Connection
         // TODO: Implement get_client() method.
     }
 
-    function post(string $path, Record $record): Response
+    function post(string $path, $obj): Response
     {
         // TODO: Implement post() method.
     }
