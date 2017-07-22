@@ -71,6 +71,10 @@ foreach($records as $record) {
 
 In this example, the `Tozny\E3DB\Client::query` method returns an iterator that contains each record that matches the query.
 
+## More examples
+
+See [the simple example code](https://github.com/tozny/e3db-php/blob/master/examples/simple.php) for runnable detailed examples.
+
 # Development
 
 Before running tests, create an integration test client with the E3DB command line tool:

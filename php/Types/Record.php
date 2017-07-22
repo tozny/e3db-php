@@ -57,7 +57,7 @@ class Record implements \JsonSerializable, JsonUnserializable
      */
     public $data;
 
-    public function __construct(Meta $meta, array $data)
+    public function __construct(Meta $meta, $data)
     {
         $this->_meta = $meta;
         $this->data  = $data;
