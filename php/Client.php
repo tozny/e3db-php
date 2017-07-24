@@ -122,7 +122,7 @@ class Client
                 $info = $this->conn->get_client($client_id);
             }
         } catch (RequestException $re) {
-            throw new NotFoundException('Count not retrieve info from the server.', 'client');
+            throw new NotFoundException('Could not retrieve info from the server.', 'client');
         }
 
         return ClientInfo::decode((string) $info->getBody());
@@ -162,7 +162,7 @@ class Client
         try {
             $resp = $this->conn->get($path);
         } catch (RequestException $re) {
-            throw new NotFoundException('Count not retrieve data from the server.', 'record');
+            throw new NotFoundException('Could not retrieve data from the server.', 'record');
         }
 
         return Record::decode((string) $resp->getBody());
@@ -376,6 +376,10 @@ class Client
 
         array_walk($encrypted->data, function ($cipher, $key) use ($access_key, &$data) {
             $fields = explode('.', $cipher);
+
+            if (count($fields) !== 4) {
+                throw new \RuntimeException('Invalid ciphertext passed to decryption routine.');
+            }
 
             $edk = base64decode($fields[ 0 ]);
             $edkN = base64decode($fields[ 1 ]);

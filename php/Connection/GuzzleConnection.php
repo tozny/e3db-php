@@ -117,9 +117,6 @@ class GuzzleConnection extends Connection
      */
     function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void
     {
-        $cache_key = "{$writer_id}.{$user_id}.{$type}";
-        $this->ak_cache[ $cache_key ] = $ak;
-
         // Get the reader's public key
         $client_info = json_decode((string) $this->get_client($reader_id)->getBody(), true);
         $reader_key = $client_info[ 'public_key' ][ 'curve25519' ];
@@ -128,6 +125,10 @@ class GuzzleConnection extends Connection
 
         $path = $this->uri('v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type);
         $this->client->request('PUT', $path, ['json' => ['eak' => $encoded]]);
+
+        // Cache the key for later, but only after the PUT has succeeded
+        $cache_key = "{$writer_id}.{$user_id}.{$type}";
+        $this->ak_cache[ $cache_key ] = $ak;
     }
 
     /**

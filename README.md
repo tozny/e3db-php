@@ -1,4 +1,4 @@
-[![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Packagist][packagist-image]][packagist-url]
+![PHP 7.0+][php-image] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Packagist][packagist-image]][packagist-url]
 
 # Introduction
 
@@ -25,18 +25,11 @@ Then run `php composer.phar install`
 
 1. Download and install the E3DB Command-Line interface (CLI) from our [GitHub releases page](https://github.com/tozny/e3db-go/releases).
 
-2. Register an account using the CLI:
-
-   ```shell
-   $ e3db register me@mycompany.com
-   ```
-
-   This will create a new default configuration with a randomly
-   generated key pair and API credentials, saving it in `$HOME/.tozny/e3db.json`.
+2. Register an account and create a client with [InnoVault](https://innovault.io).
    
 ## Loading configuration and creating a client
 
-Configuration is managed at runtime using environment variables (loading configuration either from the system itself or from a flat `.env` file at the project root). See the `.env.example` file for variable names.
+Configuration is managed at runtime by instantiating a `Tozny\E3DB\Config` object with your client's credentials.
 
 # Usage
 
@@ -48,7 +41,7 @@ To write new records to the database, call the `Tozny\E3DB\Client::write` method
 <?php
 $record = $client->write('contact', [
   'first_name' => 'Jon',
-  'last_name'  => 'Snoq',
+  'last_name'  => 'Snow',
   'phone'      => '555-555-1212',
 ]);
 
@@ -77,11 +70,7 @@ See [the simple example code](https://github.com/tozny/e3db-php/blob/master/exam
 
 # Development
 
-Before running tests, create _two_ integration test clients with the E3DB command line tool:
-
-```
-$ e3db -p integration-test register me+test@mycompany.com
-```
+Before running tests, create _two_ integration test clients through your [InnoVault](https://innovault.io) account.
 
 Store the credentials returned for both clients in a `.env` file at the project root (see `.env.example` for the example file layout).
 
@@ -99,6 +88,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/tozny/
 
 This library is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
+[php-image]: https://img.shields.io/badge/php-7.0%2B-green.svg
 [packagist-image]: https://img.shields.io/packagist/dt/tozny/e3db-php.svg
 [packagist-url]: https://packagist.org/packages/tozny/e3db-php
 [travis-image]: https://travis-ci.org/tozny/e3db-php.svg?branch=master
