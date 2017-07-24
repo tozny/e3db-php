@@ -101,7 +101,7 @@ class ClientTest extends TestCase
     {
         $this->expectException(NotFoundException::class);
 
-        $this->client->client_info('nosuchemail@tozny.com');
+        $this->client->client_info('integration_test+' . uniqid() . '@tozny.com');
     }
 
     public function test_client_key()
