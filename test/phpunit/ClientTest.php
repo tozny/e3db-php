@@ -12,9 +12,6 @@ use Tozny\E3DB\Types\Record;
 
 class ClientTest extends TestCase
 {
-    const TEST_SHARE_CLIENT = 'dac7899f-c474-4386-9ab8-f638dcc50dec';
-    const TEST_SHARE_EMAIL = 'ijones+feedback@tozny.com';
-
     /**
      * @var Config
      */
@@ -110,7 +107,7 @@ class ClientTest extends TestCase
 
         $this->assertEquals($this->config->public_key, $key->curve25519);
 
-        $second = $this->client->client_key('26a4b5f7-1abe-4ca2-a049-249e259f04a8');
+        $second = $this->client->client_key(\getenv('CLIENT_ID_2'));
 
         $this->assertNotEquals($this->config->public_key, $second->curve25519);
     }
@@ -245,13 +242,9 @@ class ClientTest extends TestCase
 
     public function test_share()
     {
-        $this->client->share($this->type, self::TEST_SHARE_CLIENT);
+        $this->client->share($this->type, \getenv('CLIENT_ID_2'));
 
-        $this->client->revoke($this->type, self::TEST_SHARE_CLIENT);
-
-        $this->client->share($this->type, self::TEST_SHARE_EMAIL);
-
-        $this->client->revoke($this->type, self::TEST_SHARE_EMAIL);
+        $this->client->revoke($this->type, \getenv('CLIENT_ID_2'));
 
         // If we've gotten to here with no errors or exceptions, then we assume sharing/revocation worked!
         $this->assertTrue(true);

@@ -77,13 +77,13 @@ See [the simple example code](https://github.com/tozny/e3db-php/blob/master/exam
 
 # Development
 
-Before running tests, create an integration test client with the E3DB command line tool:
+Before running tests, create _two_ integration test clients with the E3DB command line tool:
 
 ```
 $ e3db -p integration-test register me+test@mycompany.com
 ```
 
-Store the credentials returned for this client in a `.env` file at the project root (see `.env.example` for the example file layout).
+Store the credentials returned for both clients in a `.env` file at the project root (see `.env.example` for the example file layout).
 
 After checking out the repo, install dependencies using `composer install` then run PHPUnit with `./vendor/bin/phpunit` to execute all of the integration tests.
 
