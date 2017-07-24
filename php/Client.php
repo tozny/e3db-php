@@ -109,7 +109,7 @@ class Client
     }
 
     /**
-     * Retrieve information about a client, primarily it's UUID and public key,
+     * Retrieve information about a client, primarily its UUID and public key,
      * based either on an already-known client ID or a discoverable client
      * email address.
      *
@@ -277,7 +277,7 @@ class Client
      * To restrict the results to a set of clients, pass a single or
      * list of client IDs as the `writer` argument. To list records
      * written by any client that has shared with the current client,
-     * pass the special string 'any' as the `writer` argument.
+     * pass the special string 'all' as the `writer` argument.
      *
      * @param bool         $data      Flag to include data in records
      * @param bool         $raw       Flag to skip decryption of data
