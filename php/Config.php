@@ -32,14 +32,7 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB;
 
-use Tozny\E3DB\Exceptions\ImmutabilityException;
-
-/**
- * Default API endpoint location.
- *
- * @codeCoverageIgnore
- */
-const DEFAULT_API_URL = 'https://api.e3db.com/';
+use Tozny\E3DB\Types\Accessor;
 
 /**
  * Configuration and credentials for E3DB.
@@ -56,6 +49,13 @@ const DEFAULT_API_URL = 'https://api.e3db.com/';
  */
 class Config
 {
+    use Accessor;
+
+    /**
+     * Default API endpoint location.
+     */
+    const DEFAULT_API_URL = 'https://api.e3db.com/';
+
     /**
      * @var int The version number of the configuration format (currently 1)
      */
@@ -89,7 +89,12 @@ class Config
     /**
      * @var string The base URL for the E3DB API service
      */
-    protected $_api_url = DEFAULT_API_URL;
+    protected $_api_url = self::DEFAULT_API_URL;
+
+    /**
+     * @var array Fields that cannot be overwritten externally.
+     */
+    protected $immutableFields = ['version', 'client_id', 'api_key_id', 'api_secret', 'public_key', 'private_key', 'api_url'];
 
     public function __construct(
         string $client_id,
@@ -97,7 +102,7 @@ class Config
         string $api_secret,
         string $public_key,
         string $private_key,
-        string $api_url = DEFAULT_API_URL
+        string $api_url = self::DEFAULT_API_URL
     )
     {
         $this->_client_id = $client_id;
@@ -106,38 +111,5 @@ class Config
         $this->_public_key = $public_key;
         $this->_private_key = $private_key;
         $this->_api_url = $api_url;
-    }
-
-    /**
-     * Magic getter to retrieve read-only properties.
-     *
-     * @param string $name Property name to retrieve
-     *
-     * @return mixed
-     */
-    public function __get(string $name)
-    {
-        $key = "_{$name}";
-        if (property_exists($this, $key)) {
-            return $this->$key;
-        }
-
-        trigger_error("Undefined property: Config::{$name}", E_USER_NOTICE);
-        return null;
-    }
-
-    /**
-     * Magic setter that prevents the changes to read-only properties
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws ImmutabilityException
-     */
-    public function __set($name, $value)
-    {
-        if (in_array($name, ['version', 'client_id', 'api_key_id', 'api_secret', 'public_key', 'private_key', 'api_url'])) {
-            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
-        }
     }
 }

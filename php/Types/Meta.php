@@ -32,8 +32,6 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
-use Tozny\E3DB\Exceptions\ImmutabilityException;
-
 /**
  * Describe the meta information attributed to a specific encrypted record.
  *
@@ -44,8 +42,10 @@ use Tozny\E3DB\Exceptions\ImmutabilityException;
  *
  * @package Tozny\E3DB\Types
  */
-class Meta implements \JsonSerializable, JsonUnserializable
+class Meta extends JsonUnserializable
 {
+    use Accessor;
+
     /**
      * @var string Unique ID of the record, or `null` if not yet written
      */
@@ -86,6 +86,11 @@ class Meta implements \JsonSerializable, JsonUnserializable
      */
     public $plain = null;
 
+    /**
+     * @var array Fields that cannot be overwritten externally.
+     */
+    protected $immutableFields = ['record_id', 'created', 'last_modified', 'version'];
+
     public function __construct(string $writer_id, string $user_id, string $type, array $plain = null)
     {
         $this->_record_id     = null;
@@ -96,39 +101,6 @@ class Meta implements \JsonSerializable, JsonUnserializable
         $this->_created       = null;
         $this->_last_modified = null;
         $this->_version       = null;
-    }
-
-    /**
-     * Magic getter to retrieve read-only properties.
-     *
-     * @param string $name Property name to retrieve
-     *
-     * @return mixed
-     */
-    public function __get(string $name)
-    {
-        $key = "_{$name}";
-        if (property_exists($this, $key)) {
-            return $this->$key;
-        }
-
-        trigger_error("Undefined property: Meta::{$name}", E_USER_NOTICE);
-        return null;
-    }
-
-    /**
-     * Magic setter that prevents the changes to read-only properties
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws ImmutabilityException
-     */
-    public function __set($name, $value)
-    {
-        if (in_array($name, ['record_id', 'created', 'last_modified', 'version'])) {
-            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
-        }
     }
 
     /**
@@ -149,29 +121,28 @@ class Meta implements \JsonSerializable, JsonUnserializable
     }
 
     /**
-     * Specify how data should be unserialized from JSON and marshaled into
-     * an object representation.
-     *
-     * @param string $json Raw JSON string to be decoded
-     *
-     * @return Meta
-     *
-     * @throws \Exception
-     */
-    public static function decode(string $json): Meta
-    {
-        $data = \json_decode($json, true);
-
-        if (null === $data) {
-            throw new \Exception('Error decoding Meta JSON');
-        }
-
-        return self::decodeArray($data);
-    }
-
-    /**
      * Specify how an already unserialized JSON array should be marshaled into
      * an object representation.
+     *
+     * Meta objects consist of both mutable and immutable information describing
+     * the record to which they're attached. Ownership, type, and datetime information
+     * is fixed and only updated by the server, but the plaintext fields attributed
+     * to a record can be controlled by the user. This mutable field is a map of
+     * strings to strings (an associative array) and is stored in plaintext on the
+     * server. The array expected for deserializing back into an object requires:
+     *
+     * <code>
+     * $meta = Meta::decodeArray([
+     *   'record_id'     => '',
+     *   'writer_id'     => '',
+     *   'user_id'       => '',
+     *   'type'          => '',
+     *   'plain'         => [],
+     *   'created'       => ''
+     *   'last_modified' => ''
+     *   'version'       => ''
+     * ]);
+     * </code>
      *
      * @param array $parsed
      *

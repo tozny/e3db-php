@@ -43,6 +43,7 @@ use function Tozny\E3DB\Crypto\random_nonce;
 use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
+use Tozny\E3DB\Types\Accessor;
 use Tozny\E3DB\Types\ClientInfo;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
@@ -60,6 +61,8 @@ use Tozny\E3DB\Types\Record;
  */
 class Client
 {
+    use Accessor;
+
     /**
      * @var Config Connection/Client configuration
      */
@@ -69,6 +72,11 @@ class Client
      * @var Connection Interface through which API calls will be made.
      */
     private $conn;
+
+    /**
+     * @var array Fields that cannot be overwritten externally.
+     */
+    protected $immutableFields = ['config', 'conn'];
 
     public function __construct(Config $config, Connection $conn)
     {
@@ -91,21 +99,6 @@ class Client
 
         trigger_error("Undefined property: Client::{$name}", E_USER_NOTICE);
         return null;
-    }
-
-    /**
-     * Magic setter that prevents the changes to read-only properties
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws ImmutabilityException
-     */
-    public function __set($name, $value)
-    {
-        if (in_array($name, ['config', 'conn'])) {
-            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
-        }
     }
 
     /**

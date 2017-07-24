@@ -32,8 +32,6 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
-use Tozny\E3DB\Exceptions\ImmutabilityException;
-
 /**
  * A E3DB record containing data and metadata. Records are
  * a key/value mapping containing data serialized
@@ -45,8 +43,10 @@ use Tozny\E3DB\Exceptions\ImmutabilityException;
  *
  * @package Tozny\E3DB\Types
  */
-class Record implements \JsonSerializable, JsonUnserializable
+class Record extends JsonUnserializable
 {
+    use Accessor;
+
     /**
      * @var Meta Meta information about the record.
      */
@@ -57,43 +57,15 @@ class Record implements \JsonSerializable, JsonUnserializable
      */
     public $data;
 
+    /**
+     * @var array Fields that cannot be overwritten externally.
+     */
+    protected $immutableFields = ['meta'];
+
     public function __construct(Meta $meta, $data)
     {
         $this->_meta = $meta;
         $this->data  = $data;
-    }
-
-    /**
-     * Magic getter to retrieve read-only properties.
-     *
-     * @param string $name Property name to retrieve
-     *
-     * @return mixed
-     */
-    public function __get(string $name)
-    {
-        $key = "_{$name}";
-        if (property_exists($this, $key)) {
-            return $this->$key;
-        }
-
-        trigger_error("Undefined property: Record::{$name}", E_USER_NOTICE);
-        return null;
-    }
-
-    /**
-     * Magic setter that prevents the changes to read-only properties
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws ImmutabilityException
-     */
-    public function __set($name, $value)
-    {
-        if (in_array($name, ['meta'])) {
-            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
-        }
     }
 
     /**
@@ -108,31 +80,35 @@ class Record implements \JsonSerializable, JsonUnserializable
     }
 
     /**
-     * Specify how data should be unserialized from JSON and marshaled into
-     * an object representation.
-     *
-     * @param string $json Raw JSON string to be decoded
-     *
-     * @return Record
-     *
-     * @throws \Exception
-     */
-    public static function decode(string $json): Record
-    {
-        $data = \json_decode($json, true);
-
-        if (null === $data) {
-            throw new \Exception('Error decoding Record JSON');
-        }
-
-        return self::decodeArray($data);
-    }
-
-    /**
      * Specify how an already unserialized JSON array should be marshaled into
      * an object representation.
      *
-     * @param array $parsed
+     * Records consist of two elements, meta and data. The array we deserialize into a Record instance
+     * must match this format. The meta element is itself an array representing the Meta class. The
+     * data element is a simpler array mapping string keys to either encrypted or plaintext string values.
+     *
+     * <code>
+     * $record = Record::decodeArray([
+     *   'meta' => [
+     *     'record_id'     => '',
+     *     'writer_id'     => '',
+     *     'user_id'       => '',
+     *     'type'          => '',
+     *     'plain'         => [],
+     *     'created'       => ''
+     *     'last_modified' => ''
+     *     'version'       => ''
+     *   ],
+     *   'data' => [
+     *     'key' => 'value',
+     *     'key' => 'value'
+     *   ]
+     * ]);
+     * </code>
+     *
+     * @see \Tozny\E3DB\Types\Meta::decodeArray()
+     *
+     * @param array[string]string $parsed
      *
      * @return Record
      */

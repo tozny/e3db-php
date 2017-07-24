@@ -60,14 +60,14 @@ class Query implements \JsonSerializable
     public $include_all_writers = true;
 
     public function __construct(
-        int $after_index = 0,
-        bool $include_data = false,
-        $writer_ids = [],
-        $record_ids = [],
-        $content_types = [],
-        $plain = [],
-        $user_ids = [],
-        int $count = self::DEFAULT_QUERY_COUNT,
+        int $after_index          = 0,
+        bool $include_data        = false,
+        $writer_ids               = null,
+        $record_ids               = null,
+        $content_types            = null,
+        $plain                    = null,
+        $user_ids                 = null,
+        int $count                = self::DEFAULT_QUERY_COUNT,
         bool $include_all_writers = false
     )
     {
@@ -90,8 +90,8 @@ class Query implements \JsonSerializable
         }
         if (is_array($plain)) {
             $this->plain = $plain;
-        } else if ($plain !== null) {
-            $this->plain = [$plain];
+        } else {
+            $this->plain = null;
         }
         if (is_array($user_ids)) {
             $this->user_ids = $user_ids;

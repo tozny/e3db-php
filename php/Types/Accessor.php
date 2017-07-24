@@ -32,59 +32,40 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
-/**
- * Describe a Curve25519 public key for use in Sodium-powered cryptographic
- * operations.
- *
- * @property-read string $curve25519 Public component of the Curve25519 key.
- *
- * @package Tozny\E3DB\Types
- */
-class PublicKey extends JsonUnserializable
+use Tozny\E3DB\Exceptions\ImmutabilityException;
+
+trait Accessor
 {
-    use Accessor;
-
     /**
-     * @var string Public component of the Curve25519 key.
+     * Magic getter to retrieve read-only properties.
+     *
+     * @param string $name Property name to retrieve
+     *
+     * @return mixed
      */
-    protected $_curve25519;
-
-    protected $immutableFields = ['curve25519'];
-
-    public function __construct(string $curve25519)
+    public function __get(string $name)
     {
-        $this->_curve25519 = $curve25519;
+        $key = "_{$name}";
+        if (property_exists($this, $key)) {
+            return $this->$key;
+        }
+
+        trigger_error(sprintf('Undefined property: %s::%s', self::class, $name), E_USER_NOTICE);
+        return null;
     }
 
     /**
-     * Serialize the object to JSON
+     * Magic setter that prevents the changes to read-only properties
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ImmutabilityException
      */
-    public function jsonSerialize(): array
+    public function __set($name, $value)
     {
-        return [
-            'curve25519'  => $this->_curve25519,
-        ];
-    }
-
-    /**
-     * Specify how an already unserialized JSON array should be marshaled into
-     * an object representation.
-     *
-     * The public key component of a Curve25519 key alone is serialized for transmission between
-     * various parties.
-     *
-     * <code>
-     * $key = PublicKey::decodeArray([
-     *   'curve25519' => ''
-     * ]);
-     * </code>
-     *
-     * @param array $parsed
-     *
-     * @return PublicKey
-     */
-    public static function decodeArray(array $parsed): PublicKey
-    {
-        return new PublicKey($parsed[ 'curve25519' ]);
+        if (isset($this->immutableFields) && in_array($name, $this->immutableFields)) {
+            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
+        }
     }
 }

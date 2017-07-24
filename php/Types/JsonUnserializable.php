@@ -39,7 +39,7 @@ namespace Tozny\E3DB\Types;
  *
  * @package Tozny\E3DB\Types
  */
-interface JsonUnserializable
+abstract class JsonUnserializable implements \JsonSerializable
 {
     /**
      * Specify how data should be unserialized from JSON and marshaled into
@@ -48,16 +48,27 @@ interface JsonUnserializable
      * @param string $json Raw JSON string to be decoded
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
-    static function decode(string $json);
+    public static function decode(string $json)
+    {
+        $data = \json_decode($json, true);
+
+        if (null === $data) {
+            throw new \Exception(sprintf('Error decoding %s JSON', static::class));
+        }
+
+        return static::decodeArray($data);
+    }
 
     /**
      * Specify how an already unserialized JSON array should be marshaled into
      * an object representation.
      *
-     * @param array $parsed
+     * @param array[string]string $parsed
      *
      * @return mixed
      */
-    static function decodeArray(array $parsed);
+    abstract static function decodeArray(array $parsed);
 }

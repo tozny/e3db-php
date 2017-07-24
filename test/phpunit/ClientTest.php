@@ -126,6 +126,13 @@ class ClientTest extends TestCase
         $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
         $this->assertArrayHasKey('test', $record->data);
         $this->assertEquals('data', $record->data['test']);
+
+        // Verify a read with a second client instance, to purge the EAK cache
+        $conn = new GuzzleConnection($this->config);
+        $client = new Client($this->config, $conn);
+
+        $second = $client->read($this->record->meta->record_id);
+        $this->assertEquals($record->meta->record_id, $second->meta->record_id);
     }
 
     public function test_query()

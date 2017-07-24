@@ -32,8 +32,6 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Types;
 
-use Tozny\E3DB\Exceptions\ImmutabilityException;
-
 /**
  * Information about a specific E3DB client, including the client's
  * public key to be used for cryptographic operations.
@@ -44,8 +42,10 @@ use Tozny\E3DB\Exceptions\ImmutabilityException;
  *
  * @package Tozny\E3DB\Types
  */
-class ClientInfo implements \JsonSerializable, JsonUnserializable
+class ClientInfo extends JsonUnserializable
 {
+    use Accessor;
+
     /**
      * @var string UUID representing the client.
      */
@@ -61,44 +61,16 @@ class ClientInfo implements \JsonSerializable, JsonUnserializable
      */
     protected $_validated;
 
+    /**
+     * @var array Fields that cannot be overwritten externally.
+     */
+    protected $immutableFields = ['client_id', 'public_key', 'validated'];
+
     public function __construct(string $client_id, PublicKey $public_key, bool $validated)
     {
         $this->_client_id  = $client_id;
         $this->_public_key = $public_key;
         $this->_validated  = $validated;
-    }
-
-    /**
-     * Magic getter to retrieve read-only properties.
-     *
-     * @param string $name Property name to retrieve
-     *
-     * @return mixed
-     */
-    public function __get(string $name)
-    {
-        $key = "_{$name}";
-        if (property_exists($this, $key)) {
-            return $this->$key;
-        }
-
-        trigger_error("Undefined property: ClientInfo::{$name}", E_USER_NOTICE);
-        return null;
-    }
-
-    /**
-     * Magic setter that prevents the changes to read-only properties
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws ImmutabilityException
-     */
-    public function __set($name, $value)
-    {
-        if (in_array($name, ['client_id', 'public_key', 'validated'])) {
-            throw new ImmutabilityException(sprintf('The `%s` field is read-only!', $name));
-        }
     }
 
     /**
@@ -114,29 +86,23 @@ class ClientInfo implements \JsonSerializable, JsonUnserializable
     }
 
     /**
-     * Specify how data should be unserialized from JSON and marshaled into
-     * an object representation.
-     *
-     * @param string $json Raw JSON string to be decoded
-     *
-     * @return ClientInfo
-     *
-     * @throws \Exception
-     */
-    public static function decode(string $json): ClientInfo
-    {
-        $data = \json_decode($json, true);
-
-        if (null === $data) {
-            throw new \Exception('Error decoding ClientInfo JSON');
-        }
-
-        return self::decodeArray($data);
-    }
-
-    /**
      * Specify how an already unserialized JSON array should be marshaled into
      * an object representation.
+     *
+     * Client information contains the ID of the client, a Curve25519 public key
+     * component, and a flag describing whether or not the client has been validated.
+     *
+     * <code>
+     * $info = ClientInfo::decodeArray([
+     *   'client_id'  => '',
+     *   'public_key' => [
+     *     'curve25519' => ''
+     *   ],
+     *   'validated'  => true
+     * ]);
+     * <code>
+     *
+     * @see \Tozny\E3DB\Types\PublicKey::decodeArray()
      *
      * @param array $parsed
      *
