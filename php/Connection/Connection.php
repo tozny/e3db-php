@@ -177,7 +177,7 @@ abstract class Connection
      * @param string $ak Raw binary string of the access key
      * @param string $reader_key Base64url-encoded public key of the reader
      *
-     * @return string Encryted and encoded access key.
+     * @return string Encrypted and encoded access key.
      */
     protected function encrypt_ak(string $ak, string $reader_key): string
     {

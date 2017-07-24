@@ -78,7 +78,6 @@ class QueryResult implements \Iterator, \Countable, \ArrayAccess
         try {
             $response = $this->client->conn->post($path, $query);
         } catch (RequestException $re) {
-            var_dump($re->getResponse());
             throw new \RuntimeException('Error sending query data to the API!');
         }
 
