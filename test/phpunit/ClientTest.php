@@ -4,8 +4,10 @@ namespace Tozny\E3DB;
 use PHPUnit\Framework\TestCase;
 use Tozny\E3DB\Connection\Connection;
 use Tozny\E3DB\Connection\GuzzleConnection;
+use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
+use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\Record;
 
 class ClientTest extends TestCase
@@ -212,6 +214,33 @@ class ClientTest extends TestCase
 
         $this->assertArrayHasKey( 'third', $fetched->data );
         $this->assertEquals( 'Misc', $fetched->data[ 'third' ] );
+    }
+
+    public function test_failed_update()
+    {
+        $data = [
+            'first' => 'this is a string',
+            'second' => 'test',
+        ];
+
+        $record = $this->client->write( uniqid( 'type_' ), $data );
+
+        // Build up the same record with a bogus version
+        $newMeta = Meta::decodeArray([
+            'record_id'     => $record->meta->record_id,
+            'writer_id'     => $record->meta->writer_id,
+            'user_id'       => $record->meta->user_id,
+            'type'          => $record->meta->type,
+            'plain'         => $record->meta->plain,
+            'created'       => '2017-07-04',                          // Doesn't matter ...
+            'last_modified' => '2017-07-04',                          // Doesn't matter ...
+            'version'       => '11111111-7998-441c-8680-3b96e92c2c76' // Bogus version
+        ]);
+        $newRecord = new Record($newMeta, $record->data);
+
+        $this->expectException(ConflictException::class);
+
+        $this->client->update( $newRecord );
     }
 
     public function test_share()
