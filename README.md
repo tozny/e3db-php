@@ -31,6 +31,30 @@ Then run `php composer.phar install`
 
 Configuration is managed at runtime by instantiating a `Tozny\E3DB\Config` object with your client's credentials.
 
+```
+// Assuming your credentials are stored as defined constants in the
+// application, pass them each into the configuration constructor as
+// follows:
+$config = new \Tozny\E3DB\Config(
+  CLIENT_ID,
+  API_KEY_ID,
+  API_SECRET,
+  PUBLIC_KEY,
+  PRIVATE_KEY,
+  API_URL
+);
+
+// Pass the configuration to the default coonection handler, which
+// uses Guzzle for requests. If you need a different library for
+// requests, subclass `\Tozny\E3DB\Connection` and pass an instance
+// of your custom implementation to the client instead.
+$connection = new \Tozny\E3DB\GuzzleConnection($config);
+
+// Pass both the configuration and connection handler when building
+// a new client instance.
+$client = new \Tozny\E3DB\Client($config, $connection);
+```
+
 # Usage
 
 ## Writing a record
