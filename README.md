@@ -15,7 +15,7 @@ To install with composer add the following to your `composer.json` file:
 
 ```
 "require": {
-    "tozny/e3db-php": "dev-master"
+    "tozny/e3db": "dev-master"
 }
 ```
 
@@ -89,8 +89,8 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/tozny/
 This library is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
 [php-image]: https://img.shields.io/badge/php-7.0%2B-green.svg
-[packagist-image]: https://img.shields.io/packagist/dt/tozny/e3db-php.svg
-[packagist-url]: https://packagist.org/packages/tozny/e3db-php
+[packagist-image]: https://img.shields.io/packagist/dt/tozny/e3db.svg
+[packagist-url]: https://packagist.org/packages/tozny/e3db
 [travis-image]: https://travis-ci.org/tozny/e3db-php.svg?branch=master
 [travis-url]: https://travis-ci.org/tozny/e3db-php
 [coveralls-image]: https://coveralls.io/repos/github/tozny/e3db-php/badge.svg?branch=master
