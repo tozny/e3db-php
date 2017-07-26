@@ -114,7 +114,7 @@ class QueryResult implements \Iterator, \Countable, \ArrayAccess
      *
      * @link http://php.net/manual/en/iterator.next.php
      */
-    public function next(): void
+    public function next()
     {
         ++$this->position;
     }
@@ -148,7 +148,7 @@ class QueryResult implements \Iterator, \Countable, \ArrayAccess
      *
      * @link http://php.net/manual/en/iterator.rewind.php
      */
-    public function rewind(): void
+    public function rewind()
     {
         $this->position = 0;
     }
@@ -201,7 +201,7 @@ class QueryResult implements \Iterator, \Countable, \ArrayAccess
      *
      * @param Record $value The value to set.
      */
-    public function offsetSet($offset, $value): void
+    public function offsetSet($offset, $value)
     {
         $this->data[$offset] = $value;
     }
@@ -213,7 +213,7 @@ class QueryResult implements \Iterator, \Countable, \ArrayAccess
      *
      * @param mixed $offset The offset to unset.
      */
-    public function offsetUnset($offset): void
+    public function offsetUnset($offset)
     {
         unset($this->data[$offset]);
     }

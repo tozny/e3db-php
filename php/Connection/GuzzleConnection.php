@@ -115,7 +115,7 @@ class GuzzleConnection extends Connection
      * @param string $type      Record type for which the key will be used
      * @param string $ak        Unencrypted access key
      */
-    function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void
+    function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak)
     {
         // Get the reader's public key
         $client_info = json_decode((string) $this->get_client($reader_id)->getBody(), true);

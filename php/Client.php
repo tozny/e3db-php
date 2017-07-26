@@ -217,7 +217,7 @@ class Client
      *
      * @throws ConflictException If the version ID in the record does not match the latest version stored on the server.
      */
-    public function update(Record $record): void
+    public function update(Record $record)
     {
         $record_id = $record->meta->record_id;
         $version = $record->meta->version;
@@ -239,7 +239,7 @@ class Client
      *
      * @param string $record_id
      */
-    public function delete(string $record_id): void
+    public function delete(string $record_id)
     {
         $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
         try {
@@ -300,7 +300,7 @@ class Client
      * @param string $type      Type of records to share
      * @param string $reader_id Client ID or email address of reader to grant access to
      */
-    public function share(string $type, string $reader_id): void
+    public function share(string $type, string $reader_id)
     {
         if ($reader_id === $this->config->client_id) {
             return;
@@ -325,7 +325,7 @@ class Client
      * @param string $type      Type of records to share
      * @param string $reader_id Client ID or email address of reader to grant access from
      */
-    public function revoke(string $type, string $reader_id): void
+    public function revoke(string $type, string $reader_id)
     {
         if ($reader_id === $this->config->client_id) {
             return;

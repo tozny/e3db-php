@@ -77,7 +77,7 @@ abstract class Connection
      * @param string $type      Record type for which the key will be used
      * @param string $ak        Unencrypted access key
      */
-    abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak): void;
+    abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak);
 
     /**
      * Attempt to find a client based on their email address.
