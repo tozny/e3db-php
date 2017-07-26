@@ -31,10 +31,12 @@ Then run `php composer.phar install`
 
 Configuration is managed at runtime by instantiating a `Tozny\E3DB\Config` object with your client's credentials.
 
-```
-// Assuming your credentials are stored as defined constants in the
-// application, pass them each into the configuration constructor as
-// follows:
+```php
+/**
+ * Assuming your credentials are stored as defined constants in the
+ * application, pass them each into the configuration constructor as
+ * follows:
+ */
 $config = new \Tozny\E3DB\Config(
   CLIENT_ID,
   API_KEY_ID,
@@ -44,14 +46,18 @@ $config = new \Tozny\E3DB\Config(
   API_URL
 );
 
-// Pass the configuration to the default coonection handler, which
-// uses Guzzle for requests. If you need a different library for
-// requests, subclass `\Tozny\E3DB\Connection` and pass an instance
-// of your custom implementation to the client instead.
+/**
+ * Pass the configuration to the default coonection handler, which
+ * uses Guzzle for requests. If you need a different library for
+ * requests, subclass `\Tozny\E3DB\Connection` and pass an instance
+ * of your custom implementation to the client instead.
+ */
 $connection = new \Tozny\E3DB\GuzzleConnection($config);
 
-// Pass both the configuration and connection handler when building
-// a new client instance.
+/**
+ * Pass both the configuration and connection handler when building
+ * a new client instance.
+ */
 $client = new \Tozny\E3DB\Client($config, $connection);
 ```
 
@@ -61,8 +67,7 @@ $client = new \Tozny\E3DB\Client($config, $connection);
 
 To write new records to the database, call the `Tozny\E3DB\Client::write` method with a string describing the type of data to be written, along with an associative array containing the fields of the record. `Tozny\E3DB\Client::write` returns the newly created record.
 
-```
-<?php
+```php
 $record = $client->write('contact', [
   'first_name' => 'Jon',
   'last_name'  => 'Snow',
@@ -78,7 +83,7 @@ E3DB supports many options for querying records based on the fields stored in re
 
 For example, to list all records of type `contact` and print a simple report containing names and phone numbers:
 
-```
+```php
 $records = $client->query(true, false, null, null, 'contact');
 foreach($records as $record) {
   $fullname = $record->data['first_name'] . ' ' . $record->data['last_name'];
