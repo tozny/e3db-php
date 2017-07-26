@@ -32,9 +32,6 @@ declare(strict_types=1);
 
 namespace Tozny\E3DB\Crypto;
 
-use const Sodium\CRYPTO_SECRETBOX_KEYBYTES;
-use const Sodium\CRYPTO_SECRETBOX_NONCEBYTES;
-
 /**
  * Encode a string of bytes in URL-safe Base64.
  *
@@ -65,7 +62,7 @@ function base64decode(string $raw)
  */
 function random_nonce(): string
 {
-    return \random_bytes(CRYPTO_SECRETBOX_NONCEBYTES);
+    return \random_bytes(\ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_NONCEBYTES);
 }
 
 /**
@@ -75,5 +72,5 @@ function random_nonce(): string
  */
 function random_key(): string
 {
-    return \random_bytes(CRYPTO_SECRETBOX_KEYBYTES);
+    return \random_bytes(\ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES);
 }

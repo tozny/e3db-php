@@ -166,9 +166,9 @@ abstract class Connection
         $nonce = base64decode($fields[ 1 ]);
 
         // Build keypair
-        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
+        $keypair = \ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
 
-        return sodium_crypto_box_open($ciphertext, $nonce, $keypair);
+        return \ParagonIE_Sodium_Compat::crypto_box_open($ciphertext, $nonce, $keypair);
     }
 
     /**
@@ -185,10 +185,10 @@ abstract class Connection
         $private_key = base64decode($this->config->private_key);
 
         // Build keypair
-        $keypair = sodium_crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
+        $keypair = \ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($private_key, $public_key);
 
         $nonce = \random_bytes(CRYPTO_BOX_NONCEBYTES);
-        $eak = sodium_crypto_box($ak, $nonce, $keypair);
+        $eak = \ParagonIE_Sodium_Compat::crypto_box($ak, $nonce, $keypair);
 
         return sprintf('%s.%s', base64encode($eak), base64encode($nonce));
     }

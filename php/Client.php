@@ -33,15 +33,12 @@ declare(strict_types=1);
 namespace Tozny\E3DB;
 
 use GuzzleHttp\Exception\RequestException;
-use function Sodium\crypto_secretbox;
-use function Sodium\crypto_secretbox_open;
 use Tozny\E3DB\Connection\Connection;
 use function Tozny\E3DB\Crypto\base64decode;
 use function Tozny\E3DB\Crypto\base64encode;
 use function Tozny\E3DB\Crypto\random_key;
 use function Tozny\E3DB\Crypto\random_nonce;
 use Tozny\E3DB\Exceptions\ConflictException;
-use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Accessor;
 use Tozny\E3DB\Types\ClientInfo;
@@ -386,8 +383,8 @@ class Client
             $ef = base64decode($fields[ 2 ]);
             $efN = base64decode($fields[ 3 ]);
 
-            $dk = crypto_secretbox_open($edk, $edkN, $access_key);
-            $data[ $key ] = crypto_secretbox_open($ef, $efN, $dk);
+            $dk = \ParagonIE_Sodium_Compat::crypto_secretbox_open($edk, $edkN, $access_key);
+            $data[ $key ] = \ParagonIE_Sodium_Compat::crypto_secretbox_open($ef, $efN, $dk);
         });
 
         return new Record($encrypted->meta, $data);
@@ -435,9 +432,9 @@ class Client
         array_walk($record->data, function ($plain, $key) use ($ak, &$data) {
             $dk = random_key();
             $efN = random_nonce();
-            $ef = crypto_secretbox($plain, $efN, $dk);
+            $ef = \ParagonIE_Sodium_Compat::crypto_secretbox($plain, $efN, $dk);
             $edkN = random_nonce();
-            $edk = crypto_secretbox($dk, $edkN, $ak);
+            $edk = \ParagonIE_Sodium_Compat::crypto_secretbox($dk, $edkN, $ak);
 
             $data[ $key ] = sprintf('%s.%s.%s.%s',
                 base64encode($edk), base64encode($edkN),
