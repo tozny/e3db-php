@@ -16,6 +16,7 @@ before_install:
   - sudo apt-add-repository ppa:ondrej/php -y
   - sudo apt-get update -q
   - sudo apt-get install libsodium-dev -y
+  - touch .env
 
 before_script:
   - pecl install libsodium-1.0.6
