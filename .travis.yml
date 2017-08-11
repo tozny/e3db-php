@@ -19,6 +19,7 @@ before_install:
   - touch .env
 
 before_script:
+  - pecl channel-update pecl.php.net
   - pecl install libsodium-1.0.6
   - composer install --dev --no-interaction
 
