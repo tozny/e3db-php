@@ -243,6 +243,7 @@ class Client
             $this->conn->delete($path);
         } catch (RequestException $re) {
             switch ($re->getResponse()->getStatusCode()) {
+                case 403:
                 case 404:
                 case 410:
                     // If the record never existed, or is already missing, return
