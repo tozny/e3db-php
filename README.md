@@ -52,7 +52,7 @@ $config = new \Tozny\E3DB\Config(
  * requests, subclass `\Tozny\E3DB\Connection` and pass an instance
  * of your custom implementation to the client instead.
  */
-$connection = new \Tozny\E3DB\GuzzleConnection($config);
+$connection = new \Tozny\E3DB\Connection\GuzzleConnection($config);
 
 /**
  * Pass both the configuration and connection handler when building
