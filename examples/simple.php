@@ -69,7 +69,13 @@ echo 'Record:   ' . $newRecord->data[ 'name' ] . ' ' . $record->data[ 'what_he_k
 
 // Query for all records of type 'test-contact' and print out
 // a little bit of data and metadata.
-$queryResult = $client->query(true, false, null, null, 'test-contact');
+$data = true;
+$raw = false;
+$writer = null;
+$record = null;
+$type = 'test-contact';
+
+$queryResult = $client->query($data, $raw, $writer, $record, $type);
 foreach ($queryResult as $record) {
     echo 'Data:     ' . $record->data[ 'name' ] . ' ' . $record->data[ 'what_he_knows' ] . "\n";
     echo 'Metadata: ' . $record->meta->record_id . ' ' . $record->meta->type . "\n";
@@ -116,7 +122,13 @@ $client->write('test-contact', $doran_data, $doran_plain);
 $queryWesteros = ['eq' => ['name' => 'house', 'value' => 'Stark']];
 
 // Execute that query:
-$queryResult = $client->query(true, false, null, null, null, $queryWesteros);
+$data = true;
+$raw = false;
+$writer = null;
+$record = null;
+$type = null;
+
+$queryResult = $client->query($data, $raw, $writer, $record, $type, $queryWesteros);
 foreach ($queryResult as $record) {
     echo $record->data[ 'name' ] . "\n";
 }
@@ -130,7 +142,13 @@ $queryWesteros = [
 ];
 
 // Execute that query:
-$queryResult = $client->query(true, false, null, null, null, $queryWesteros);
+$data = true;
+$raw = false;
+$writer = null;
+$record = null;
+$type = null;
+
+$queryResult = $client->query($data, $raw, $writer, $record, $type, $queryWesteros);
 foreach ($queryResult as $record) {
     echo $record->data[ 'name' ] . "\n";
 }
@@ -181,7 +199,13 @@ $client->revoke('test-contact', 'ijones+feedback@tozny.com');
 $client->delete($record_id);
 
 # Delete all of the records of type test-contact from previous runs:
-$queryResult = $client->query(false, false, null, null, 'test-contact');
+$data = false;
+$raw = false;
+$writer = null;
+$record = null;
+$type = 'test-contact';
+
+$queryResult = $client->query($data, $raw, $writer, $record, $type);
 foreach ($queryResult as $record) {
     $client->delete($record->meta->record_id);
 }

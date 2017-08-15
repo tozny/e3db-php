@@ -84,7 +84,13 @@ E3DB supports many options for querying records based on the fields stored in re
 For example, to list all records of type `contact` and print a simple report containing names and phone numbers:
 
 ```php
-$records = $client->query(true, false, null, null, 'contact');
+$data = true;
+$raw = false;
+$writer = null;
+$record = null;
+$type = 'contact';
+
+$records = $client->query($data, $raw, $writer, $record, $type);
 foreach($records as $record) {
   $fullname = $record->data['first_name'] . ' ' . $record->data['last_name'];
   echo sprintf("%-40s %s\n", $fullname, $record->data['phone']);
