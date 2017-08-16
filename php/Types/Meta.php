@@ -108,12 +108,18 @@ class Meta extends JsonUnserializable
      */
     public function jsonSerialize(): array
     {
+        if (empty($this->plain)) {
+            $plain = null;
+        } else {
+            $plain = $this->plain;
+        }
+
         return [
             'record_id'     => $this->_record_id,
             'writer_id'     => $this->writer_id,
             'user_id'       => $this->user_id,
             'type'          => $this->type,
-            'plain'         => $this->plain,
+            'plain'         => $plain,
             'created'       => self::jsonSerializeDate($this->_created),
             'last_modified' => self::jsonSerializeDate($this->_last_modified),
             'version'       => $this->_version,
