@@ -132,6 +132,24 @@ class GuzzleConnection extends Connection
     }
 
     /**
+     * Delete an access key on the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     */
+    function delete_access_key(string $writer_id, string $user_id, string $reader_id, string $type)
+    {
+        $path = $this->uri('v1', 'storage', 'access_keys', $writer_id, $user_id, $reader_id, $type);
+        $this->client->request('DELETE', $path);
+
+        // Remove any cached keys
+        $cache_key = "{$writer_id}.{$user_id}.{$type}";
+        unset($this->ak_cache[ $cache_key ]);
+    }
+
+    /**
      * Attempt to find a client based on their email address.
      *
      * @param string $email

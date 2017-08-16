@@ -80,6 +80,16 @@ abstract class Connection
     abstract function put_access_key(string $writer_id, string $user_id, string $reader_id, string $type, string $ak);
 
     /**
+     * Delete an access key on the server.
+     *
+     * @param string $writer_id Writer/Authorizer for the access key
+     * @param string $user_id   Record subject
+     * @param string $reader_id Authorized reader
+     * @param string $type      Record type for which the key will be used
+     */
+    abstract function delete_access_key(string $writer_id, string $user_id, string $reader_id, string $type);
+
+    /**
      * Attempt to find a client based on their email address.
      *
      * @param string $email
