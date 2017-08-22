@@ -23,7 +23,7 @@ Then run `php composer.phar install`
 
 ## Registering a client
 
-Register an account with [InnoVault](https://inoovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console).
+Register an account with [InnoVault](https://inoovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`.
    
 ## Loading configuration and creating a client
 
@@ -103,9 +103,9 @@ See [the simple example code](https://github.com/tozny/e3db-php/blob/master/exam
 
 # Development
 
-Before running tests, create both a client and a registration token through your [InnoVault](https://innovault.io) account.
+Before running tests, create a registration token through your [InnoVault](https://innovault.io) account.
 
-Store the generated credentials and registration token in a `.env` file at the project root (see `.env.example` for the example file layout).
+Store the registration token in a `.env` file at the project root (see `.env.example` for the example file layout). The integration tests will use this token to dynamically create test clients.
 
 After checking out the repo, install dependencies using `composer install` then run PHPUnit with `./vendor/bin/phpunit` to execute all of the integration tests.
 

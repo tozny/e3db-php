@@ -347,16 +347,18 @@ class Client
      * @param string    $registration_token Registration token as presented by the admin console
      * @param string    $client_name        Distinguishable name to be used for the token in the console
      * @param PublicKey $public_key         Curve25519 public key component used for encryption
+     * @param string    [$api_url]          Base URI for the e3DB API
      *
      * @return ClientDetails
      */
-    public function register_client(string $registration_token, string $client_name, PublicKey $public_key): ClientDetails
+    public static function register(string $registration_token, string $client_name, PublicKey $public_key, string $api_url = 'https://api.e3db.com'): ClientDetails
     {
-        $path = $this->conn->uri('v1', 'account', 'e3db', 'clients', 'register');
+        $path = $api_url . '/v1/account/e3db/clients/register';
         $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => $public_key]];
 
         try {
-            $resp = $this->conn->post($path, (object) $payload);
+            $client = new \GuzzleHttp\Client(['base_uri' => $api_url]);
+            $resp = $client->request('POST', $path, ['json' => $payload]);
         } catch (RequestException $re) {
             throw new \RuntimeException('Error while registering a new client!');
         }

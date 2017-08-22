@@ -46,27 +46,31 @@ class ClientTest extends TestCase
 
     public static function setUpBeforeClass()
     {
+        // Register test clients
+        $token = \getenv('REGISTRATION_TOKEN');
+        $client1_keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
+        $client1_public_key = new PublicKey(base64encode(substr($client1_keys, 32)));
+        $client1_name = uniqid('test_client_');
+        $client2_keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
+        $client2_public_key = new PublicKey(base64encode(substr($client2_keys, 32)));
+        $client2_name = uniqid('share_client_');
+
+        $client1 = Client::register($token, $client1_name, $client1_public_key, \getenv('API_URL'));
+        $client2 = Client::register($token, $client2_name, $client2_public_key, \getenv('API_URL'));
+        self::$client_2_id = $client2->client_id;
+
         self::$config = new Config(
-            \getenv('CLIENT_ID'),
-            \getenv('API_KEY_ID'),
-            \getenv('API_SECRET'),
-            \getenv('PUBLIC_KEY'),
-            \getenv('PRIVATE_KEY'),
+            $client1->client_id,
+            $client1->api_key_id,
+            $client1->api_secret,
+            $client1->public_key->curve25519,
+            base64encode(substr($client1_keys, 0, 32)),
             \getenv('API_URL')
         );
 
         self::$conn = new GuzzleConnection(self::$config);
 
         self::$client = new Client(self::$config, self::$conn);
-
-        // Register the share client
-        $token = \getenv('REGISTRATION_TOKEN');
-        $client2_keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
-        $client2_public_key = new PublicKey(base64encode(substr($client2_keys, 32)));
-        $client2_name = uniqid('share_client_');
-
-        $client2 = self::$client->register_client($token, $client2_name, $client2_public_key);
-        self::$client_2_id = $client2->client_id;
 
         // Write a record
         self::$type = uniqid('type_');
