@@ -41,6 +41,7 @@ use function Tozny\E3DB\Crypto\random_nonce;
 use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Accessor;
+use Tozny\E3DB\Types\ClientDetails;
 use Tozny\E3DB\Types\ClientInfo;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
@@ -338,6 +339,29 @@ class Client
         $deny->deny = [['read' => new \stdClass()]];
 
         $this->conn->put($path, $deny);
+    }
+
+    /**
+     * Register a new client with a specific account.
+     *
+     * @param string    $registration_token Registration token as presented by the admin console
+     * @param string    $client_name        Distinguishable name to be used for the token in the console
+     * @param PublicKey $public_key         Curve25519 public key component used for encryption
+     *
+     * @return ClientDetails
+     */
+    public function register_client(string $registration_token, string $client_name, PublicKey $public_key): ClientDetails
+    {
+        $path = $this->conn->uri('v1', 'account', 'e3db', 'clients', 'register');
+        $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => $public_key]];
+
+        try {
+            $resp = $this->conn->post($path, (object) $payload);
+        } catch (RequestException $re) {
+            throw new \RuntimeException('Error while registering a new client!');
+        }
+
+        return ClientDetails::decode((string) $resp->getBody());
     }
 
     /**

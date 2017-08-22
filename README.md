@@ -23,9 +23,7 @@ Then run `php composer.phar install`
 
 ## Registering a client
 
-1. Download and install the E3DB Command-Line interface (CLI) from our [GitHub releases page](https://github.com/tozny/e3db-go/releases).
-
-2. Register an account and create a client with [InnoVault](https://innovault.io).
+Register an account with [InnoVault](https://inoovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console).
    
 ## Loading configuration and creating a client
 
@@ -105,9 +103,9 @@ See [the simple example code](https://github.com/tozny/e3db-php/blob/master/exam
 
 # Development
 
-Before running tests, create _two_ integration test clients through your [InnoVault](https://innovault.io) account.
+Before running tests, create both a client and a registration token through your [InnoVault](https://innovault.io) account.
 
-Store the credentials returned for both clients in a `.env` file at the project root (see `.env.example` for the example file layout).
+Store the generated credentials and registration token in a `.env` file at the project root (see `.env.example` for the example file layout).
 
 After checking out the repo, install dependencies using `composer install` then run PHPUnit with `./vendor/bin/phpunit` to execute all of the integration tests.
 
