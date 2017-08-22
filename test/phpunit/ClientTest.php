@@ -79,6 +79,22 @@ class ClientTest extends TestCase
         parent::setUpBeforeClass();
     }
 
+    public function test_registration()
+    {
+        $token = \getenv('REGISTRATION_TOKEN');
+        $keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
+        $public_key = new PublicKey(base64encode(substr($keys, 32)));
+        $name = uniqid('test_client_');
+
+        $client = Client::register($token, $name, $public_key, \getenv('API_URL'));
+
+        $this->assertEquals($name, $client->name);
+        $this->assertEquals($public_key->curve25519, $client->public_key->curve25519);
+        $this->assertNotEmpty($client->api_key_id);
+        $this->assertNotEmpty($client->api_secret);
+        $this->assertNotEmpty($client->client_id);
+    }
+
     public function test_immutability()
     {
         $thrown = false;
