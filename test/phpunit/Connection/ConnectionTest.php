@@ -91,6 +91,11 @@ class ConcreteConnection extends Connection
         // TODO: Implement put_access_key() method.
     }
 
+    function delete_access_key(string $writer_id, string $user_id, string $reader_id, string $type)
+    {
+        // TODO: Implement delete_access_key() method.
+    }
+
     function find_client(string $email): Response
     {
         // TODO: Implement find_client() method.

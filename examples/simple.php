@@ -91,9 +91,11 @@ foreach ($queryResult as $record) {
 $isaac_client_id = 'db1744b9-3fb6-4458-a291-0bc677dba08b';
 $client->share('test-contact', $isaac_client_id);
 
-// Share all of the records of type 'test-contact' with Isaac's email address.
-// This only works if the client has opted into discovery of their client_id.
-$client->share('test-contact', 'ijones+feedback@tozny.com');
+// Alternatively, share all of the records of type 'test-contact' with Isaac's
+// email address. This only works if the client has opted into discovery of
+// their client_id.
+
+//$client->share('test-contact', 'ijones+feedback@tozny.com');
 
 /**
  * ---------------------------------------------------------
@@ -198,7 +200,7 @@ $client->revoke('test-contact', 'ijones+feedback@tozny.com');
 // Delete the record we created above
 $client->delete($record_id);
 
-# Delete all of the records of type test-contact from previous runs:
+// Delete all of the records of type test-contact from previous runs:
 $data = false;
 $raw = false;
 $writer = null;

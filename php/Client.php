@@ -338,6 +338,9 @@ class Client
         $deny->deny = [['read' => new \stdClass()]];
 
         $this->conn->put($path, $deny);
+
+        // Delete any existing access key
+        $this->conn->delete_access_key($id, $id, $reader_id, $type);
     }
 
     /**
