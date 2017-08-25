@@ -15,7 +15,7 @@ To install with composer add the following to your `composer.json` file:
 
 ```
 "require": {
-    "tozny/e3db": "1.0.0"
+    "tozny/e3db": "1.1.0"
 }
 ```
 
