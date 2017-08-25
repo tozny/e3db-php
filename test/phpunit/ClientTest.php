@@ -8,6 +8,7 @@ use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Meta;
+use Tozny\E3DB\Types\PublicKey;
 use Tozny\E3DB\Types\Record;
 
 class ClientTest extends TestCase
@@ -15,55 +16,89 @@ class ClientTest extends TestCase
     /**
      * @var Config
      */
-    private $config;
+    private static $config;
 
     /**
      * @var Connection
      */
-    private $conn;
+    private static $conn;
 
     /**
      * @var Client
      */
-    private $client;
+    private static $client;
 
     /**
      * @var string
      */
-    private $type;
+    private static $client_2_id;
+
+    /**
+     * @var string
+     */
+    private static $type;
 
     /**
      * @var Record
      */
-    private $record;
+    private static $record;
 
-    public function setUp()
+    public static function setUpBeforeClass()
     {
-        $this->config = new Config(
-            \getenv('CLIENT_ID'),
-            \getenv('API_KEY_ID'),
-            \getenv('API_SECRET'),
-            \getenv('PUBLIC_KEY'),
-            \getenv('PRIVATE_KEY'),
+        // Register test clients
+        $token = \getenv('REGISTRATION_TOKEN');
+        list($client1_public_key, $client1_private_key) = Client::generate_keypair();
+        $client1_public_key = new PublicKey($client1_public_key);
+        $client1_name = uniqid('test_client_');
+        list($client2_public_key, ) = Client::generate_keypair();
+        $client2_public_key = new PublicKey($client2_public_key);
+        $client2_name = uniqid('share_client_');
+
+        $client1 = Client::register($token, $client1_name, $client1_public_key, \getenv('API_URL'));
+        $client2 = Client::register($token, $client2_name, $client2_public_key, \getenv('API_URL'));
+        self::$client_2_id = $client2->client_id;
+
+        self::$config = new Config(
+            $client1->client_id,
+            $client1->api_key_id,
+            $client1->api_secret,
+            $client1->public_key->curve25519,
+            $client1_private_key,
             \getenv('API_URL')
         );
 
-        $this->conn = new GuzzleConnection($this->config);
+        self::$conn = new GuzzleConnection(self::$config);
 
-        $this->client = new Client($this->config, $this->conn);
+        self::$client = new Client(self::$config, self::$conn);
 
         // Write a record
-        $this->type = uniqid('type_');
-        $this->record = $this->client->write($this->type, ['test' => 'data']);
+        self::$type = uniqid('type_');
+        self::$record = self::$client->write(self::$type, ['test' => 'data']);
 
-        parent::setUp();
+        parent::setUpBeforeClass();
+    }
+
+    public function test_registration()
+    {
+        $token = \getenv('REGISTRATION_TOKEN');
+        list($public_key, ) = Client::generate_keypair();
+        $public_key = new PublicKey($public_key);
+        $name = uniqid('test_client_');
+
+        $client = Client::register($token, $name, $public_key, \getenv('API_URL'));
+
+        $this->assertEquals($name, $client->name);
+        $this->assertEquals($public_key->curve25519, $client->public_key->curve25519);
+        $this->assertNotEmpty($client->api_key_id);
+        $this->assertNotEmpty($client->api_secret);
+        $this->assertNotEmpty($client->client_id);
     }
 
     public function test_immutability()
     {
         $thrown = false;
         try {
-            $this->client->config = new Config('', '', '', '', '', '');
+            self::$client->config = new Config('', '', '', '', '', '');
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -71,7 +106,7 @@ class ClientTest extends TestCase
 
         $thrown = false;
         try {
-            $this->client->conn = new GuzzleConnection($this->config);
+            self::$client->conn = new GuzzleConnection(self::$config);
         } catch (ImmutabilityException $ie) {
             $thrown = true;
         }
@@ -81,68 +116,68 @@ class ClientTest extends TestCase
     public function test_unset_variable()
     {
         // The @ silences the user warning that is otherwise triggered.
-        $this->assertNull(@$this->client->noRealProperty);
+        $this->assertNull(@self::$client->noRealProperty);
 
-        $this->client->noRealProperty = 'test';
-        $this->assertNull(@$this->client->noRealProperty);
+        self::$client->noRealProperty = 'test';
+        $this->assertNull(@self::$client->noRealProperty);
     }
 
     public function test_client_info()
     {
-        $info = $this->client->client_info($this->config->client_id);
+        $info = self::$client->client_info(self::$config->client_id);
 
-        $this->assertEquals($this->config->client_id, $info->client_id);
+        $this->assertEquals(self::$config->client_id, $info->client_id);
     }
 
     public function test_client_info_error()
     {
         $this->expectException(NotFoundException::class);
 
-        $this->client->client_info('integration_test+' . uniqid() . '@tozny.com');
+        self::$client->client_info('integration_test+' . uniqid() . '@tozny.com');
     }
 
     public function test_client_key()
     {
-        $key = $this->client->client_key($this->config->client_id);
+        $key = self::$client->client_key(self::$config->client_id);
 
-        $this->assertEquals($this->config->public_key, $key->curve25519);
+        $this->assertEquals(self::$config->public_key, $key->curve25519);
 
-        $second = $this->client->client_key(\getenv('CLIENT_ID_2'));
+        $second = self::$client->client_key(self::$client_2_id);
 
-        $this->assertNotEquals($this->config->public_key, $second->curve25519);
+        $this->assertNotEquals(self::$config->public_key, $second->curve25519);
     }
 
     public function test_read_raw()
     {
-        $record = $this->client->read_raw($this->record->meta->record_id);
+        $record = self::$client->read_raw(self::$record->meta->record_id);
 
-        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
+        $this->assertEquals(self::$record->meta->record_id, $record->meta->record_id);
     }
 
     public function test_read()
     {
-        $record = $this->client->read($this->record->meta->record_id);
+        $record = self::$client->read(self::$record->meta->record_id);
 
-        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
+        $this->assertEquals(self::$record->meta->record_id, $record->meta->record_id);
         $this->assertArrayHasKey('test', $record->data);
         $this->assertEquals('data', $record->data['test']);
 
         // Verify a read with a second client instance, to purge the EAK cache
-        $conn = new GuzzleConnection($this->config);
-        $client = new Client($this->config, $conn);
+        $conn = new GuzzleConnection(self::$config);
+        $client = new Client(self::$config, $conn);
 
-        $second = $client->read($this->record->meta->record_id);
+        $second = $client->read(self::$record->meta->record_id);
         $this->assertEquals($record->meta->record_id, $second->meta->record_id);
     }
 
     public function test_query()
     {
-        $data = $this->client->query(true, false, null, $this->record->meta->record_id);
+        $data = self::$client->query(true, false, null, self::$record->meta->record_id);
 
         $this->assertEquals(1, count($data));
 
         $record = $data[0];
-        $this->assertEquals($this->record->meta->record_id, $record->meta->record_id);
+        $this->assertEquals(self::$record->meta->record_id, $record->meta->record_id);
     }
 
     public function test_query_iteration()
@@ -151,11 +186,11 @@ class ClientTest extends TestCase
         $type = uniqid('type_');
 
         foreach(range(0, 10) as $i) {
-            $this->client->write($type, ['test' => 'data'], ['index' => (string) $i]);
+            self::$client->write($type, ['test' => 'data'], ['index' => (string) $i]);
         }
 
         // Retrieve records
-        $records = $this->client->query(true, false, null, null, $type);
+        $records = self::$client->query(true, false, null, null, $type);
 
         $counted = [];
         foreach($records as $record) {
@@ -175,14 +210,14 @@ class ClientTest extends TestCase
         $record_id = '11111111-7998-441c-8680-3b96e92c2c76';
 
         $this->expectException(NotFoundException::class);
-        $this->client->read($record_id);
+        self::$client->read($record_id);
     }
 
     public function test_delete()
     {
         $record_id = '11111111-7998-441c-8680-3b96e92c2c76';
 
-        $this->client->delete($record_id);
+        self::$client->delete($record_id);
         $this->assertTrue(true); // Noop
     }
 
@@ -193,7 +228,7 @@ class ClientTest extends TestCase
             'second' => 'test',
         ];
 
-        $record = $this->client->write(uniqid('type_'), $data);
+        $record = self::$client->write(uniqid('type_'), $data);
 
         $this->assertEquals('test', $record->data['second']);
     }
@@ -205,16 +240,16 @@ class ClientTest extends TestCase
             'second' => 'test',
         ];
 
-        $record = $this->client->write( uniqid( 'type_' ), $data );
+        $record = self::$client->write( uniqid( 'type_' ), $data );
 
         $this->assertArrayNotHasKey( 'third', $record->data );
 
         $record->data[ 'third' ] = 'Misc';
 
-        $this->client->update( $record );
+        self::$client->update( $record );
 
         // Re-read the data
-        $fetched = $this->client->read( $record->meta->record_id );
+        $fetched = self::$client->read( $record->meta->record_id );
 
         $this->assertArrayHasKey( 'third', $fetched->data );
         $this->assertEquals( 'Misc', $fetched->data[ 'third' ] );
@@ -227,7 +262,7 @@ class ClientTest extends TestCase
             'second' => 'test',
         ];
 
-        $record = $this->client->write( uniqid( 'type_' ), $data );
+        $record = self::$client->write( uniqid( 'type_' ), $data );
 
         // Build up the same record with a bogus version
         $newMeta = Meta::decodeArray([
@@ -244,14 +279,14 @@ class ClientTest extends TestCase
 
         $this->expectException(ConflictException::class);
 
-        $this->client->update( $newRecord );
+        self::$client->update( $newRecord );
     }
 
     public function test_share()
     {
-        $this->client->share($this->type, \getenv('CLIENT_ID_2'));
+        self::$client->share(self::$type, self::$client_2_id);
 
-        $this->client->revoke($this->type, \getenv('CLIENT_ID_2'));
+        self::$client->revoke(self::$type, self::$client_2_id);
 
         // If we've gotten to here with no errors or exceptions, then we assume sharing/revocation worked!
         $this->assertTrue(true);

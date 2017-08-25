@@ -41,6 +41,7 @@ use function Tozny\E3DB\Crypto\random_nonce;
 use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Accessor;
+use Tozny\E3DB\Types\ClientDetails;
 use Tozny\E3DB\Types\ClientInfo;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
@@ -341,6 +342,43 @@ class Client
 
         // Delete any existing access key
         $this->conn->delete_access_key($id, $id, $reader_id, $type);
+    }
+
+    /**
+     * Register a new client with a specific account.
+     *
+     * @param string    $registration_token Registration token as presented by the admin console
+     * @param string    $client_name        Distinguishable name to be used for the token in the console
+     * @param PublicKey $public_key         Curve25519 public key component used for encryption
+     * @param string    [$api_url]          Base URI for the e3DB API
+     *
+     * @return ClientDetails
+     */
+    public static function register(string $registration_token, string $client_name, PublicKey $public_key, string $api_url = 'https://api.e3db.com'): ClientDetails
+    {
+        $path = $api_url . '/v1/account/e3db/clients/register';
+        $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => $public_key]];
+
+        try {
+            $client = new \GuzzleHttp\Client(['base_uri' => $api_url]);
+            $resp = $client->request('POST', $path, ['json' => $payload]);
+        } catch (RequestException $re) {
+            throw new \RuntimeException('Error while registering a new client!');
+        }
+
+        return ClientDetails::decode((string) $resp->getBody());
+    }
+
+    /**
+     * Dynamically generate a Curve25519 keypair for use with registration and cryptographic operations
+     *
+     * @return array Tuple of [public_key, private_key], both Base64URL-encoded.
+     */
+    public static function generate_keypair()
+    {
+        $keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
+
+        return [base64encode(substr($keys, 32)), base64encode(substr($keys, 0, 32))];
     }
 
     /**
