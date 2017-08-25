@@ -4,7 +4,6 @@ namespace Tozny\E3DB;
 use PHPUnit\Framework\TestCase;
 use Tozny\E3DB\Connection\Connection;
 use Tozny\E3DB\Connection\GuzzleConnection;
-use function Tozny\E3DB\Crypto\base64encode;
 use Tozny\E3DB\Exceptions\ConflictException;
 use Tozny\E3DB\Exceptions\ImmutabilityException;
 use Tozny\E3DB\Exceptions\NotFoundException;
@@ -48,11 +47,11 @@ class ClientTest extends TestCase
     {
         // Register test clients
         $token = \getenv('REGISTRATION_TOKEN');
-        $client1_keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
-        $client1_public_key = new PublicKey(base64encode(substr($client1_keys, 32)));
+        list($client1_public_key, $client1_private_key) = Client::generate_keypair();
+        $client1_public_key = new PublicKey($client1_public_key);
         $client1_name = uniqid('test_client_');
-        $client2_keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
-        $client2_public_key = new PublicKey(base64encode(substr($client2_keys, 32)));
+        list($client2_public_key, ) = Client::generate_keypair();
+        $client2_public_key = new PublicKey($client2_public_key);
         $client2_name = uniqid('share_client_');
 
         $client1 = Client::register($token, $client1_name, $client1_public_key, \getenv('API_URL'));
@@ -64,7 +63,7 @@ class ClientTest extends TestCase
             $client1->api_key_id,
             $client1->api_secret,
             $client1->public_key->curve25519,
-            base64encode(substr($client1_keys, 0, 32)),
+            $client1_private_key,
             \getenv('API_URL')
         );
 
@@ -82,8 +81,8 @@ class ClientTest extends TestCase
     public function test_registration()
     {
         $token = \getenv('REGISTRATION_TOKEN');
-        $keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
-        $public_key = new PublicKey(base64encode(substr($keys, 32)));
+        list($public_key, ) = Client::generate_keypair();
+        $public_key = new PublicKey($public_key);
         $name = uniqid('test_client_');
 
         $client = Client::register($token, $name, $public_key, \getenv('API_URL'));

@@ -367,6 +367,18 @@ class Client
     }
 
     /**
+     * Dynamically generate a Curve25519 keypair for use with registration and cryptographic operations
+     *
+     * @return array Tuple of [public_key, private_key], both Base64URL-encoded.
+     */
+    public static function generate_keypair()
+    {
+        $keys = \ParagonIE_Sodium_Compat::crypto_box_keypair();
+
+        return [base64encode(substr($keys, 32)), base64encode(substr($keys, 0, 32))];
+    }
+
+    /**
      * Fetch the access key for a record type and use it to decrypt a given record.
      *
      * @param Record $record Record to be decrypted.
