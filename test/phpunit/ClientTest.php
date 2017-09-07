@@ -54,8 +54,8 @@ class ClientTest extends TestCase
         $client2_public_key = new PublicKey($client2_public_key);
         $client2_name = uniqid('share_client_');
 
-        $client1 = Client::register($token, $client1_name, $client1_public_key, \getenv('API_URL'));
-        $client2 = Client::register($token, $client2_name, $client2_public_key, \getenv('API_URL'));
+        $client1 = Client::register($token, $client1_name, $client1_public_key, '', false, \getenv('API_URL'));
+        $client2 = Client::register($token, $client2_name, $client2_public_key, '', false, \getenv('API_URL'));
         self::$client_2_id = $client2->client_id;
 
         self::$config = new Config(
@@ -85,7 +85,7 @@ class ClientTest extends TestCase
         $public_key = new PublicKey($public_key);
         $name = uniqid('test_client_');
 
-        $client = Client::register($token, $name, $public_key, \getenv('API_URL'));
+        $client = Client::register($token, $name, $public_key, '', false, \getenv('API_URL'));
 
         $this->assertEquals($name, $client->name);
         $this->assertEquals($public_key->curve25519, $client->public_key->curve25519);

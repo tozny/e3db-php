@@ -407,7 +407,8 @@ class Client
                 $client_info->api_key_id,
                 $client_info->api_secret,
                 $public_key->curve25519,
-                $private_key
+                $private_key,
+                $api_url
             );
 
             $connection = new GuzzleConnection($config);
