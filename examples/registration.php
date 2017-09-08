@@ -60,6 +60,8 @@ $client_info = Client::register($token, $client_name, $wrapped_key);
 // passing your private key and a backup flag when registering. The private key is
 // not sent anywhere, but is used by the newly-created client to sign an encrypted
 // copy of its credentials that is itself stored in e3db for later use.
+//
+// Client credentials are not backed up by default.
 
 // $client_info = Client::register($token, $client_name, $wrapped_key, $private_key, true);
 

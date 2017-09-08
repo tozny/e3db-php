@@ -402,6 +402,10 @@ class Client
         $client_info = ClientDetails::decode((string) $resp->getBody());
 
         if ($backup && $backup_client_id) {
+            if (empty($private_key)) {
+                throw new \RuntimeException('Cannot back up credentials without a private key!');
+            }
+
             $config = new Config(
                 $client_info->client_id,
                 $client_info->api_key_id,
