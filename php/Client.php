@@ -34,6 +34,7 @@ namespace Tozny\E3DB;
 
 use GuzzleHttp\Exception\RequestException;
 use Tozny\E3DB\Connection\Connection;
+use Tozny\E3DB\Connection\GuzzleConnection;
 use function Tozny\E3DB\Crypto\base64decode;
 use function Tozny\E3DB\Crypto\base64encode;
 use function Tozny\E3DB\Crypto\random_key;
@@ -258,6 +259,33 @@ class Client
     }
 
     /**
+     * Back up the client's configuration to E3DB in a serialized format that can be read
+     * by the Admin Console. The stored configuration will be shared with the specified client,
+     * and the account service notified that the sharing has taken place.
+     *
+     * @param string $client_id          Unique ID of the client to which we're backing up
+     * @param string $registration_token Original registration token used to create the client
+     */
+    public function backup($client_id, $registration_token)
+    {
+        $credentials = [
+            'version'      => '1',
+            'client_id'    => \json_encode($this->config->client_id),
+            'api_key_id'   => \json_encode($this->config->api_key_id),
+            'api_secret'   => \json_encode($this->config->api_secret),
+            'client_email' => '""',
+            'public_key'   => \json_encode($this->config->public_key),
+            'private_key'  => \json_encode($this->config->private_key),
+            'api_url'      => \json_encode($this->config->api_url),
+        ];
+        $this->write('tozny.key_backup', $credentials, ['client' => $this->config->client_id]);
+        $this->share('tozny.key_backup', $client_id);
+
+        $url = $this->conn->uri('v1', 'account', 'backup', $registration_token, $this->config->client_id);
+        $this->conn->post($url, null);
+    }
+
+    /**
      * Query E3DB records according to a set of selection criteria.
      *
      * The default behavior is to return all records written by the
@@ -350,11 +378,13 @@ class Client
      * @param string    $registration_token Registration token as presented by the admin console
      * @param string    $client_name        Distinguishable name to be used for the token in the console
      * @param PublicKey $public_key         Curve25519 public key component used for encryption
+     * @param string    [$private_key]      Optional Curve25519 private key component used to sign the backup key
+     * @param bool      [$backup]           Optional flag to automatically back up the newly-created credentials to the account service
      * @param string    [$api_url]          Base URI for the e3DB API
      *
      * @return ClientDetails
      */
-    public static function register(string $registration_token, string $client_name, PublicKey $public_key, string $api_url = 'https://api.e3db.com'): ClientDetails
+    public static function register(string $registration_token, string $client_name, PublicKey $public_key, string $private_key = '', $backup = false, string $api_url = 'https://api.e3db.com'): ClientDetails
     {
         $path = $api_url . '/v1/account/e3db/clients/register';
         $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => $public_key]];
@@ -362,11 +392,36 @@ class Client
         try {
             $client = new \GuzzleHttp\Client(['base_uri' => $api_url]);
             $resp = $client->request('POST', $path, ['json' => $payload]);
+            $backup_client_id = count($resp->getHeader('X-Backup-Client')) > 0 ?
+                $resp->getHeader('X-Backup-Client')[0] :
+                false;
         } catch (RequestException $re) {
             throw new \RuntimeException('Error while registering a new client!');
         }
 
-        return ClientDetails::decode((string) $resp->getBody());
+        $client_info = ClientDetails::decode((string) $resp->getBody());
+
+        if ($backup && $backup_client_id) {
+            if (empty($private_key)) {
+                throw new \RuntimeException('Cannot back up credentials without a private key!');
+            }
+
+            $config = new Config(
+                $client_info->client_id,
+                $client_info->api_key_id,
+                $client_info->api_secret,
+                $public_key->curve25519,
+                $private_key,
+                $api_url
+            );
+
+            $connection = new GuzzleConnection($config);
+            $client = new Client($config, $connection);
+
+            $client->backup($backup_client_id, $registration_token);
+        }
+
+        return $client_info;
     }
 
     /**

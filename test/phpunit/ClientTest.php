@@ -29,6 +29,11 @@ class ClientTest extends TestCase
     private static $client;
 
     /**
+     * @var Client
+     */
+    private static $client2;
+
+    /**
      * @var string
      */
     private static $client_2_id;
@@ -50,12 +55,12 @@ class ClientTest extends TestCase
         list($client1_public_key, $client1_private_key) = Client::generate_keypair();
         $client1_public_key = new PublicKey($client1_public_key);
         $client1_name = uniqid('test_client_');
-        list($client2_public_key, ) = Client::generate_keypair();
+        list($client2_public_key, $client2_private_key) = Client::generate_keypair();
         $client2_public_key = new PublicKey($client2_public_key);
         $client2_name = uniqid('share_client_');
 
-        $client1 = Client::register($token, $client1_name, $client1_public_key, \getenv('API_URL'));
-        $client2 = Client::register($token, $client2_name, $client2_public_key, \getenv('API_URL'));
+        $client1 = Client::register($token, $client1_name, $client1_public_key, '', false, \getenv('API_URL'));
+        $client2 = Client::register($token, $client2_name, $client2_public_key, '', false, \getenv('API_URL'));
         self::$client_2_id = $client2->client_id;
 
         self::$config = new Config(
@@ -71,6 +76,19 @@ class ClientTest extends TestCase
 
         self::$client = new Client(self::$config, self::$conn);
 
+        $config2 = new Config(
+            $client2->client_id,
+            $client2->api_key_id,
+            $client2->api_secret,
+            $client2->public_key->curve25519,
+            $client2_private_key,
+            \getenv('API_URL')
+        );
+
+        $conn2 = new GuzzleConnection($config2);
+
+        self::$client2 = new Client($config2, $conn2);
+
         // Write a record
         self::$type = uniqid('type_');
         self::$record = self::$client->write(self::$type, ['test' => 'data']);
@@ -85,7 +103,7 @@ class ClientTest extends TestCase
         $public_key = new PublicKey($public_key);
         $name = uniqid('test_client_');
 
-        $client = Client::register($token, $name, $public_key, \getenv('API_URL'));
+        $client = Client::register($token, $name, $public_key, '', false, \getenv('API_URL'));
 
         $this->assertEquals($name, $client->name);
         $this->assertEquals($public_key->curve25519, $client->public_key->curve25519);
@@ -223,7 +241,7 @@ class ClientTest extends TestCase
 
     public function test_write()
     {
-         $data = [
+        $data = [
             'first' => 'this is a string',
             'second' => 'test',
         ];
@@ -284,9 +302,21 @@ class ClientTest extends TestCase
 
     public function test_share()
     {
-        self::$client->share(self::$type, self::$client_2_id);
+        $data = [
+            'first' => 'this is a string',
+            'second' => 'test',
+        ];
+        $type = uniqid('type_');
 
-        self::$client->revoke(self::$type, self::$client_2_id);
+        $record = self::$client->write($type, $data);
+
+        self::$client->share($type, self::$client_2_id);
+
+        $record2 = self::$client2->read($record->meta->record_id);
+
+        $this->assertEquals($record->data, $record2->data);
+
+        self::$client->revoke($type, self::$client_2_id);
 
         // If we've gotten to here with no errors or exceptions, then we assume sharing/revocation worked!
         $this->assertTrue(true);
