@@ -169,27 +169,6 @@ var_dump($isaac_pub_key);
 
 /**
  * ---------------------------------------------------------
- * More reading and inspection of records
- * ---------------------------------------------------------
- */
-
-// read_raw gets a record without decrypting its data
-$rawRecord = $client->read_raw($record_id);
-$newRecord = $client->read($record_id);
-
-// So let's compare them:
-
-echo (string)($rawRecord->meta == $newRecord->meta) . "\n"; // true
-echo (string)($rawRecord->data == $newRecord->data) . "\n";// false
-
-echo $newRecord->data[ 'name' ] . ' encrypts to ' . $rawRecord->data[ 'name' ] . "\n";
-
-// Records contain a few other fields that are fun to look at, and this gives
-// you a good sense for what's encrypted and what's not:
-var_dump($rawRecord);
-
-/**
- * ---------------------------------------------------------
  * Clean up - Comment these out if you want to experiment
  * ---------------------------------------------------------
  */
