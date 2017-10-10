@@ -231,10 +231,11 @@ class Client
      */
     public function delete(string $record_id, string $version=null)
     {
-        if($version != null)
+        if ($version !== null) {
             $path = $this->conn->uri('v1', 'storage', 'records', 'safe', $record_id, $version);
-        else
+        } else {
             $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
+        }
 
         try {
             $this->conn->delete($path);
