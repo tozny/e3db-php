@@ -144,17 +144,13 @@ class Client
     }
 
     /**
-     * Read a raw record from the E3DB system and return it, still encrypted, to the
-     * original requester.
+     * Reads a record from the E3DB system and decrypts it automatically.
      *
      * @param string $record_id
      *
      * @return Record
-     *
-     * @throws NotFoundException If no record is found or if the record is unreadable.
-     * @throws \RuntimeException If there is an error deserializing the data from the server.
      */
-    public function read_raw(string $record_id): Record
+    public function read(string $record_id): Record
     {
         $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
 
@@ -164,19 +160,8 @@ class Client
             throw new NotFoundException('Could not retrieve data from the server.', 'record');
         }
 
-        return Record::decode((string) $resp->getBody());
-    }
-
-    /**
-     * Reads a record from the E3DB system and decrypts it automatically.
-     *
-     * @param string $record_id
-     *
-     * @return Record
-     */
-    public function read(string $record_id): Record
-    {
-        return $this->decrypt_record($this->read_raw($record_id));
+        $raw = Record::decode((string) $resp->getBody());
+        return $this->decrypt_record($raw);
     }
 
     /**
@@ -234,13 +219,24 @@ class Client
     }
 
     /**
-     * Deletes a record from the E3DB system
+     * Deletes a record from the E3DB system, with optional optimistic locking.
      *
      * @param string $record_id
+     * @param string $version If non-null, will be checked against the
+     *   version of the record stored on the server. The record will
+     *   only be deleted if the version matches the value given here.
+     *
+     * @throws ConflictException If the version given does not match
+     * the version stored on the server.
      */
-    public function delete(string $record_id)
+    public function delete(string $record_id, string $version=null)
     {
-        $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
+        if ($version !== null) {
+            $path = $this->conn->uri('v1', 'storage', 'records', 'safe', $record_id, $version);
+        } else {
+            $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
+        }
+
         try {
             $this->conn->delete($path);
         } catch (RequestException $re) {
@@ -250,6 +246,9 @@ class Client
                 case 410:
                     // If the record never existed, or is already missing, return
                     return;
+                case 409:
+                    throw new ConflictException("Conflict deleting record ID {$record_id}", 'record');
+                    break;
                 default:
                     // Something else went wrong!
                     throw new \RuntimeException('Error while deleting record data!');

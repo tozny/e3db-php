@@ -165,13 +165,6 @@ class ClientTest extends TestCase
         $this->assertNotEquals(self::$config->public_key, $second->curve25519);
     }
 
-    public function test_read_raw()
-    {
-        $record = self::$client->read_raw(self::$record->meta->record_id);
-
-        $this->assertEquals(self::$record->meta->record_id, $record->meta->record_id);
-    }
-
     public function test_read()
     {
         $record = self::$client->read(self::$record->meta->record_id);
@@ -298,6 +291,24 @@ class ClientTest extends TestCase
         $this->expectException(ConflictException::class);
 
         self::$client->update( $newRecord );
+    }
+
+    public function test_failed_delete() {
+        $data = [
+            'first' => 'this is a string',
+            'second' => 'test',
+        ];
+
+        $record = self::$client->write( uniqid( 'type_' ), $data );
+        $record_id = $record->meta->record_id;
+        $version = $record->meta->version;
+
+        $record->data[ 'first' ] = 'Updated';
+        self::$client->update( $record );
+
+        $this->expectException(ConflictException::class);
+
+        self::$client->delete( $record_id, $version );
     }
 
     public function test_share()
