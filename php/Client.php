@@ -116,7 +116,7 @@ class Client
     {
         try {
             if (filter_var($client_id, FILTER_VALIDATE_EMAIL)) {
-                $info = $this->conn->find_client($client_id);
+                throw new \RuntimeException('Client discovery by email is not supported!');
             } else {
                 $info = $this->conn->get_client($client_id);
             }
@@ -331,7 +331,7 @@ class Client
         if ($reader_id === $this->config->client_id) {
             return;
         } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
-            $reader_id = $this->client_info($reader_id)->client_id;
+            throw new \RuntimeException('Client discovery by email is not supported!');
         }
 
         $id = $this->config->client_id;
@@ -356,7 +356,7 @@ class Client
         if ($reader_id === $this->config->client_id) {
             return;
         } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
-            $reader_id = $this->client_info($reader_id)->client_id;
+            throw new \RuntimeException('Client discovery by email is not supported!');
         }
 
         $id = $this->config->client_id;

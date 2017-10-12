@@ -91,12 +91,6 @@ foreach ($queryResult as $record) {
 $isaac_client_id = 'db1744b9-3fb6-4458-a291-0bc677dba08b';
 $client->share('test-contact', $isaac_client_id);
 
-// Alternatively, share all of the records of type 'test-contact' with Isaac's
-// email address. This only works if the client has opted into discovery of
-// their client_id.
-
-//$client->share('test-contact', 'ijones+feedback@tozny.com');
-
 /**
  * ---------------------------------------------------------
  * More complex queries
@@ -160,7 +154,7 @@ foreach ($queryResult as $record) {
  * Learning about other clients
  * ---------------------------------------------------------
  */
-$isaac_client_info = $client->client_info('ijones+feedback@tozny.com');
+$isaac_client_info = $client->client_info($isaac_client_id);
 var_dump($isaac_client_info);
 
 // Fetch the public key:
@@ -174,7 +168,7 @@ var_dump($isaac_pub_key);
  */
 
 // Revoke the sharing created by the client.share
-$client->revoke('test-contact', 'ijones+feedback@tozny.com');
+$client->revoke('test-contact', $isaac_client_id);
 
 // Delete the record we created above
 $client->delete($record_id);
