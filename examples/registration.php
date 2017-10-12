@@ -40,10 +40,6 @@ list($public_key, $private_key) = Client::generate_keypair();
 echo 'Public Key:  ' . $public_key . "\n";
 echo 'Private Key: ' . $private_key . "\n";
 
-// The e3db server keeps track of the name of the curve used with public keys,
-// so we need to wrap the generated version with an object helper
-$wrapped_key = new PublicKey($public_key);
-
 // Clients must be registered with a name unique to your account to help
 // differentiate between different sets of credentials in the Admin Console.
 // In this example, the name is set at random
@@ -53,7 +49,7 @@ echo 'Client Name: ' . $client_name . "\n";
 
 // Passing all of the data above into the registration routine will create
 // a new client with the system. Remember to keep your private key private!
-$client_info = Client::register($token, $client_name, $wrapped_key);
+$client_info = Client::register($token, $client_name, $public_key);
 
 // Optionally, you can automatically back up the credentials of the newly-created
 // client to your InnoVault account (accessible via https://console.tozny.com) by
@@ -63,7 +59,7 @@ $client_info = Client::register($token, $client_name, $wrapped_key);
 //
 // Client credentials are not backed up by default.
 
-// $client_info = Client::register($token, $client_name, $wrapped_key, $private_key, true);
+// $client_info = Client::register($token, $client_name, $public_key, $private_key, true);
 
 echo 'Client ID:   ' . $client_info->client_id . "\n";
 echo 'API Key ID:  ' . $client_info->api_key_id . "\n";
