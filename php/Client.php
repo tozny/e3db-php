@@ -102,8 +102,7 @@ class Client
 
     /**
      * Retrieve information about a client, primarily its UUID and public key,
-     * based either on an already-known client ID or a discoverable client
-     * email address.
+     * based on an already-known client ID.
      *
      * @param string $client_id
      *
@@ -116,7 +115,7 @@ class Client
     {
         try {
             if (filter_var($client_id, FILTER_VALIDATE_EMAIL)) {
-                $info = $this->conn->find_client($client_id);
+                throw new \RuntimeException('Client discovery by email is not supported!');
             } else {
                 $info = $this->conn->get_client($client_id);
             }
@@ -324,14 +323,14 @@ class Client
      * Grant another E3DB client access to records of a particular type.
      *
      * @param string $type      Type of records to share
-     * @param string $reader_id Client ID or email address of reader to grant access to
+     * @param string $reader_id Client ID of reader to grant access to
      */
     public function share(string $type, string $reader_id)
     {
         if ($reader_id === $this->config->client_id) {
             return;
         } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
-            $reader_id = $this->client_info($reader_id)->client_id;
+            throw new \RuntimeException('Client discovery by email is not supported!');
         }
 
         $id = $this->config->client_id;
@@ -349,14 +348,14 @@ class Client
      * Revoke another E3DB client's access to records of a particular type.
      *
      * @param string $type      Type of records to share
-     * @param string $reader_id Client ID or email address of reader to grant access from
+     * @param string $reader_id Client ID of reader to grant access from
      */
     public function revoke(string $type, string $reader_id)
     {
         if ($reader_id === $this->config->client_id) {
             return;
         } elseif (filter_var($reader_id, FILTER_VALIDATE_EMAIL)) {
-            $reader_id = $this->client_info($reader_id)->client_id;
+            throw new \RuntimeException('Client discovery by email is not supported!');
         }
 
         $id = $this->config->client_id;

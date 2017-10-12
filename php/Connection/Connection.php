@@ -90,15 +90,6 @@ abstract class Connection
     abstract function delete_access_key(string $writer_id, string $user_id, string $reader_id, string $type);
 
     /**
-     * Attempt to find a client based on their email address.
-     *
-     * @param string $email
-     *
-     * @return Response PSR7 response object
-     */
-    abstract function find_client(string $email): Response;
-
-    /**
      * Get a client's information based on their ID.
      *
      * @param string $client_id

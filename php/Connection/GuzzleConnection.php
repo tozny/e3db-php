@@ -150,19 +150,6 @@ class GuzzleConnection extends Connection
     }
 
     /**
-     * Attempt to find a client based on their email address.
-     *
-     * @param string $email
-     *
-     * @return Response PSR7 response object
-     */
-    function find_client(string $email): Response
-    {
-        $path = $this->uri('v1', 'storage', 'clients', 'find');
-        return $this->client->request('POST', $path, ['query' => ['email' => $email]]);
-    }
-
-    /**
      * Get a client's information based on their ID.
      *
      * @param string $client_id

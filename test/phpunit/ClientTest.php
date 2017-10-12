@@ -144,13 +144,6 @@ class ClientTest extends TestCase
         $this->assertEquals(self::$config->client_id, $info->client_id);
     }
 
-    public function test_client_info_error()
-    {
-        $this->expectException(NotFoundException::class);
-
-        self::$client->client_info('integration_test+' . uniqid() . '@tozny.com');
-    }
-
     public function test_client_key()
     {
         $key = self::$client->client_key(self::$config->client_id);
