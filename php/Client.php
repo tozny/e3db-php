@@ -102,8 +102,7 @@ class Client
 
     /**
      * Retrieve information about a client, primarily its UUID and public key,
-     * based either on an already-known client ID or a discoverable client
-     * email address.
+     * based on an already-known client ID.
      *
      * @param string $client_id
      *
@@ -324,7 +323,7 @@ class Client
      * Grant another E3DB client access to records of a particular type.
      *
      * @param string $type      Type of records to share
-     * @param string $reader_id Client ID or email address of reader to grant access to
+     * @param string $reader_id Client ID of reader to grant access to
      */
     public function share(string $type, string $reader_id)
     {
@@ -349,7 +348,7 @@ class Client
      * Revoke another E3DB client's access to records of a particular type.
      *
      * @param string $type      Type of records to share
-     * @param string $reader_id Client ID or email address of reader to grant access from
+     * @param string $reader_id Client ID of reader to grant access from
      */
     public function revoke(string $type, string $reader_id)
     {
