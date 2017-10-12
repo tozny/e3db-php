@@ -34,8 +34,7 @@ $token = '...';
 $client_name = '...';
 
 list($public_key, $private_key) = \Tozny\E3DB\Client::generate_keypair();
-$wrapped_key = new PublicKey($public_key);
-$client_info = \Tozny\E3DB\Client::register($token, $client_name, $wrapped_key);
+$client_info = \Tozny\E3DB\Client::register($token, $client_name, $public_key);
 ```
 
 The object returned from the server contains the client's UUID, API key, and API secret (as well as echos back the public key passed during registration). It's your responsibility to store this information locally as it _will not be recoverable_ without credential backup.
@@ -47,8 +46,7 @@ $token = '...';
 $client_name = '...';
 
 list($public_key, $private_key) = \Tozny\E3DB\Client::generate_keypair();
-$wrapped_key = new PublicKey($public_key);
-$client_info = \Tozny\E3DB\Client::register($token, $client_name, $wrapped_key, $private_key, true);
+$client_info = \Tozny\E3DB\Client::register($token, $client_name, $public_key, $private_key, true);
 ```
 
 The private key must be passed to the registration handler when backing up credentials as it is used to cryptographically sign the encrypted backup file stored on the server. The private key never leaves the system, and the stored credentials will only be accessible to the newly-registered client itself or the account with which it is registered.

@@ -374,19 +374,19 @@ class Client
     /**
      * Register a new client with a specific account.
      *
-     * @param string    $registration_token Registration token as presented by the admin console
-     * @param string    $client_name        Distinguishable name to be used for the token in the console
-     * @param PublicKey $public_key         Curve25519 public key component used for encryption
-     * @param string    [$private_key]      Optional Curve25519 private key component used to sign the backup key
-     * @param bool      [$backup]           Optional flag to automatically back up the newly-created credentials to the account service
-     * @param string    [$api_url]          Base URI for the e3DB API
+     * @param string $registration_token Registration token as presented by the admin console
+     * @param string $client_name        Distinguishable name to be used for the token in the console
+     * @param string $public_key         Curve25519 public key component used for encryption
+     * @param string [$private_key]      Optional Curve25519 private key component used to sign the backup key
+     * @param bool   [$backup]           Optional flag to automatically back up the newly-created credentials to the account service
+     * @param string [$api_url]          Base URI for the e3DB API
      *
      * @return ClientDetails
      */
-    public static function register(string $registration_token, string $client_name, PublicKey $public_key, string $private_key = '', $backup = false, string $api_url = 'https://api.e3db.com'): ClientDetails
+    public static function register(string $registration_token, string $client_name, string $public_key, string $private_key = '', $backup = false, string $api_url = 'https://api.e3db.com'): ClientDetails
     {
         $path = $api_url . '/v1/account/e3db/clients/register';
-        $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => $public_key]];
+        $payload = ['token' => $registration_token, 'client' => ['name' => $client_name, 'public_key' => new PublicKey($public_key)]];
 
         try {
             $client = new \GuzzleHttp\Client(['base_uri' => $api_url]);
@@ -409,7 +409,7 @@ class Client
                 $client_info->client_id,
                 $client_info->api_key_id,
                 $client_info->api_secret,
-                $public_key->curve25519,
+                $public_key,
                 $private_key,
                 $api_url
             );

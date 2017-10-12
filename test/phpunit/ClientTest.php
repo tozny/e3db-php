@@ -53,10 +53,8 @@ class ClientTest extends TestCase
         // Register test clients
         $token = \getenv('REGISTRATION_TOKEN');
         list($client1_public_key, $client1_private_key) = Client::generate_keypair();
-        $client1_public_key = new PublicKey($client1_public_key);
         $client1_name = uniqid('test_client_');
         list($client2_public_key, $client2_private_key) = Client::generate_keypair();
-        $client2_public_key = new PublicKey($client2_public_key);
         $client2_name = uniqid('share_client_');
 
         $client1 = Client::register($token, $client1_name, $client1_public_key, '', false, \getenv('API_URL'));
@@ -100,13 +98,12 @@ class ClientTest extends TestCase
     {
         $token = \getenv('REGISTRATION_TOKEN');
         list($public_key, ) = Client::generate_keypair();
-        $public_key = new PublicKey($public_key);
         $name = uniqid('test_client_');
 
         $client = Client::register($token, $name, $public_key, '', false, \getenv('API_URL'));
 
         $this->assertEquals($name, $client->name);
-        $this->assertEquals($public_key->curve25519, $client->public_key->curve25519);
+        $this->assertEquals($public_key, $client->public_key->curve25519);
         $this->assertNotEmpty($client->api_key_id);
         $this->assertNotEmpty($client->api_secret);
         $this->assertNotEmpty($client->client_id);
