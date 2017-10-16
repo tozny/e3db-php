@@ -23,7 +23,7 @@ Then run `php composer.phar install`
 
 ## Registering a client
 
-Register an account with [InnoVault](https://inoovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
+Register an account with [InnoVault](https://innovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
 
 For a more complete walkthrough, see [`/examples/registration.php`](https://github.com/tozny/e3db-php/blob/master/examples/registration.php).
 
@@ -40,7 +40,7 @@ $client_info = \Tozny\E3DB\Client::register($token, $client_name, $public_key);
 The object returned from the server contains the client's UUID, API key, and API secret (as well as echos back the public key passed during registration). It's your responsibility to store this information locally as it _will not be recoverable_ without credential backup.
 
 ### With Credential Backup
-   
+
 ```php
 $token = '...';
 $client_name = '...';
@@ -50,7 +50,7 @@ $client_info = \Tozny\E3DB\Client::register($token, $client_name, $public_key, $
 ```
 
 The private key must be passed to the registration handler when backing up credentials as it is used to cryptographically sign the encrypted backup file stored on the server. The private key never leaves the system, and the stored credentials will only be accessible to the newly-registered client itself or the account with which it is registered.
-   
+
 ## Loading configuration and creating a client
 
 Configuration is managed at runtime by instantiating a `Tozny\E3DB\Config` object with your client's credentials.
