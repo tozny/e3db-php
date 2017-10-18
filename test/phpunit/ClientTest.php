@@ -171,6 +171,17 @@ class ClientTest extends TestCase
         $this->assertEquals($record->meta->record_id, $second->meta->record_id);
     }
 
+    public function test_field_read()
+    {
+        $record = self::$client->write('field-select', ['visible' => 'can read this', 'alsovisible' => 'this too!', 'hidden' => 'cannot read this']);
+
+        $retrieved = self::$client->read($record->meta->record_id, ['visible', 'alsovisible']);
+        $this->assertEquals($record->meta->record_id, $retrieved->meta->record_id);
+        $this->assertArrayHasKey('visible', $retrieved->data);
+        $this->assertArrayHasKey('alsovisible', $retrieved->data);
+        $this->assertArrayNotHasKey('hidden', $retrieved->data);
+    }
+
     public function test_query()
     {
         $data = self::$client->query(true, false, null, self::$record->meta->record_id);

@@ -145,13 +145,24 @@ class Client
     /**
      * Reads a record from the E3DB system and decrypts it automatically.
      *
-     * @param string $record_id
+     * @param string  $record_id ID of the record to retrieve
+     * @param [array] $fields    Optional list of fields to select from the record
+     *
+     * @throws NotFoundException
      *
      * @return Record
      */
-    public function read(string $record_id): Record
+    public function read(string $record_id, array $fields = null): Record
     {
         $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
+
+        if (null !== $fields && is_array($fields)) {
+            $fields = array_map(function ($field) {
+                return 'field=' . $field;
+            }, $fields);
+
+            $path .= '?' . implode('&', $fields);
+        }
 
         try {
             $resp = $this->conn->get($path);
