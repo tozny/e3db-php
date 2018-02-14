@@ -13,7 +13,7 @@
         "satooshi/php-coveralls": "^1.0",
         "vlucas/phpdotenv": "^2.4"
     },
-    "license": "SEE LICENSE.md",
+    "license": "proprietary",
     "authors": [
         {
             "name": "Eric Mann",
