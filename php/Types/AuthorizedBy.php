@@ -40,7 +40,7 @@ namespace Tozny\E3DB\Types;
  *
  * @package Tozny\E3DB\Types
  */
-class AuthorizedBy extends JsonUnserializable
+class AuthorizedBy
 {
     use Accessor;
 
@@ -103,7 +103,7 @@ class AuthorizedBy extends JsonUnserializable
         ];
     }
 
-    public static function getAuthorizedBy(array $parsed)
+    public static function getAuthorizedBy(array $parsed): AuthorizedBy
     {
         $writer = new AuthorizedBy(
             $parsed[ 'authorized_by' ],
