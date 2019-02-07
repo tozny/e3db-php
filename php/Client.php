@@ -39,6 +39,7 @@ use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Accessor;
 use Tozny\E3DB\Types\ClientDetails;
 use Tozny\E3DB\Types\ClientInfo;
+use Tozny\E3DB\Types\AuthorizedBy;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
 use Tozny\E3DB\Types\Query;
@@ -225,7 +226,7 @@ class Client
         
         $allow = new \stdClass();
         $allow->allow = [['read' => new \stdClass()]];
-        $path = $this->conn->uri('v1', 'storage', 'policy',$writer_id, $writer_id, $reader_id, $record_type);
+        $path = $this->conn->uri('v1', 'storage', 'policy', $writer_id, $writer_id, $reader_id, $record_type);
         $this->conn->put($path, $allow);
         
     }
@@ -269,8 +270,13 @@ class Client
         } catch (RequestException $re) {
             throw new NotFoundException("Could not retrieve data");
         }
-        return json_decode($resp->getBody()->getContents());
-        
+
+        $authorizedBy = array();
+        foreach(json_decode($resp->getBody()->getContents()) as $item){
+            $authorizedBy[] = AuthorizedBy::getAuthorizedBy((array) $item);
+        } 
+        return $authorizedBy;
+
     }
     /**
      * Update a record, with optimistic concurrent locking, that already exists in the E3DB system.
