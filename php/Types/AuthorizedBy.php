@@ -20,7 +20,7 @@
  * All rights reserved.
  *
  * @package    Tozny\E3DB
- * @copyright  Copyright (c) 2017 Tozny, LLC (https://tozny.com)
+ * @copyright  Copyright (c) 2019 Tozny, LLC (https://tozny.com)
  */
 
 declare(strict_types=1);
@@ -28,7 +28,7 @@ declare(strict_types=1);
 namespace Tozny\E3DB\Types;
 
 /**
- * Full nformation about a specific E3DB client, including the client's
+ * Full information about a specific E3DB client, including the client's
  * public/private keys for cryptographic operations and API credentials.
  *
  * @property-read string    $authorized_by  ID representing the authorizing user (data writer)
