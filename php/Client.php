@@ -39,6 +39,7 @@ use Tozny\E3DB\Exceptions\NotFoundException;
 use Tozny\E3DB\Types\Accessor;
 use Tozny\E3DB\Types\ClientDetails;
 use Tozny\E3DB\Types\ClientInfo;
+use Tozny\E3DB\Types\AuthorizedBy;
 use Tozny\E3DB\Types\Meta;
 use Tozny\E3DB\Types\PublicKey;
 use Tozny\E3DB\Types\Query;
@@ -147,6 +148,7 @@ class Client
      *
      * @return Record
      */
+
     public function read(string $record_id, array $fields = null): Record
     {
         $path = $this->conn->uri('v1', 'storage', 'records', $record_id);
@@ -198,7 +200,84 @@ class Client
 
         return $this->decrypt_record(Record::decode((string) $resp->getBody()));
     }
+    /**
+     * Method for an authorizer to share data it has been authorized to share.
+     *
+     * @param string $writer_id The original writer client id
+     * @param string $reader_id The intended reader of the records
+     * @param string $record_type The record type to share
+     *
+     * 
+     *
+     * @throws \NotFoundException If there is an error while sharing record.
+     */
+    public function share_on_behalf_of(string $writer_id, string $reader_id, string $record_type)
+    {
+        
+        $id = $this->config->client_id;
+        $ak = $this->conn->get_access_key($writer_id, $writer_id, $id, $record_type);
+        try {
+            $this->conn->put_access_key($writer_id, $writer_id, $reader_id, $record_type, $ak);
+        } catch(RequestException $e) {
+            if(!$e->getCode() == 409){
+                throw new NotFoundException("Could not update AK");
+            }
+        }
+        
+        $allow = new \stdClass();
+        $allow->allow = [['read' => new \stdClass()]];
+        $path = $this->conn->uri('v1', 'storage', 'policy', $writer_id, $writer_id, $reader_id, $record_type);
+        $this->conn->put($path, $allow);
+        
+    }
+    /**
+     * Method for an authorizer to unshare data it has been authorized to share.
+     *
+     * @param string $writer_id The original writer client id
+     * @param string $reader_id The intended reader of the records
+     * @param string $record_type The record type to share
+     *
+     * 
+     *
+     * @throws \RuntimeException If there is an error while revoking access.
+     */
+    public function revoke_on_behalf_of(string $writer_id, string $reader_id, string $record_type)
+    {
+        
+        $id = $this->config->client_id;
+        
+        $deny = new \stdClass();
+        $deny->deny = [['read' => new \stdClass()]];
+        $path = $this->conn->uri('v1', 'storage', 'policy',$writer_id, $writer_id, $reader_id, $record_type);
+        $this->conn->put($path, $deny);
+        $this->conn->delete_access_key($writer_id, $writer_id, $reader_id, $record_type);
+        
+    }
+    /**
+     * Method to get a list of all clients and record types that this client is 
+     * allowed to act as an authorizer on.
+     *
+     *
+     * @return Array
+     *
+     * @throws \NotFoundException If there is an error while fetching the data.
+     */
+    public function get_authorized_by()
+    {
+        $path = $this->conn->uri('v1', 'storage', 'policy','granted');
+        try {
+            $resp = $this->conn->get($path);
+        } catch (RequestException $re) {
+            throw new NotFoundException("Could not retrieve data");
+        }
 
+        $authorizedBy = array();
+        foreach(json_decode($resp->getBody()->getContents()) as $item){
+            $authorizedBy[] = AuthorizedBy::getAuthorizedBy((array) $item);
+        } 
+        return $authorizedBy;
+
+    }
     /**
      * Update a record, with optimistic concurrent locking, that already exists in the E3DB system.
      *
