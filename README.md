@@ -2,10 +2,10 @@
 
 # Introduction
 
-The Tozny End-to-End Encrypted Database (E3DB) is a storage platform with powerful sharing and consent management features.
-[Read more on our blog.](https://tozny.com/blog/announcing-project-e3db-the-end-to-end-encrypted-database/)
+TozStore (formerly E3DB) is a storage platform with powerful sharing and consent management features.
+[Read more on our web site.](https://tozny.com/tozstore/)
 
-E3DB provides a familiar JSON-based NoSQL-style API for reading, writing, and querying data stored securely in the cloud.
+TozStore provides a familiar JSON-based NoSQL-style API for reading, writing, and querying data stored securely in the cloud.
 
 # Installation
 
@@ -23,7 +23,7 @@ Then run `php composer.phar install`
 
 ## Registering a client
 
-Register an account with [InnoVault](https://innovault.io) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
+Register an account with [Tozny]https://dashboard.tozny.com/register) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
 
 For a more complete walkthrough, see [`/examples/registration.php`](https://github.com/tozny/e3db-php/blob/master/examples/registration.php).
 
@@ -129,7 +129,7 @@ See [the simple example code](https://github.com/tozny/e3db-php/blob/master/exam
 
 # Development
 
-Before running tests, create a registration token through your [InnoVault](https://innovault.io) account.
+Before running tests, create a registration token through your [Tozny account](https://dashboard.tozny.com/register).
 
 Store the registration token in a `.env` file at the project root (see `.env.example` for the example file layout). The integration tests will use this token to dynamically create test clients.
 
@@ -137,7 +137,7 @@ After checking out the repo, install dependencies using `composer install` then 
 
 ## Documentation
 
-General E3DB documentation is [on our web site](https://tozny.com/documentation/e3db/).
+General TozStore documentation is [on our developer site](https://developers.tozny.com).
 
 ## Contributing
 
