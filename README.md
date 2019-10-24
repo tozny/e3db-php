@@ -23,7 +23,7 @@ Then run `php composer.phar install`
 
 ## Registering a client
 
-Register an account with [Tozny]https://dashboard.tozny.com/register) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
+Register an account with [Tozny](https://dashboard.tozny.com/register) to get started. From the Admin Console you can create clients directly (and grab their credentials from the console) or create registration tokens to dynamically create clients with `Tozny\E3DB\Client::register()`. Clients registered from within the console will automatically back their credentials up to your account. Clients created dynamically via the SDK can _optionally_ back their credentials up to your account.
 
 For a more complete walkthrough, see [`/examples/registration.php`](https://github.com/tozny/e3db-php/blob/master/examples/registration.php).
 
